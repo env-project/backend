@@ -16,7 +16,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from sqlmodel import SQLModel
 
-# user만 가져오는 대신, __init__.py를 통해 모든 모델을 로드합니다.
 from app.core.config import settings
 
 config = context.config
@@ -24,6 +23,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+from app.models import bookmark, common, recruiting, user  # noqa
 
 target_metadata = SQLModel.metadata
 
