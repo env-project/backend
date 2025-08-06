@@ -7,7 +7,6 @@ from .common import (
     Genre,
     Orientation,
     Position,
-    RecruitingPostType,
     RecruitmentType,
     Region,
 )
@@ -35,7 +34,6 @@ __all__ = [
     "Genre",
     "ExperienceLevel",
     "Orientation",
-    "RecruitingPostType",
     "RecruitmentType",
     "User",
     "Profile",

@@ -63,11 +63,6 @@ class Orientation(BaseModel, table=True):
     name: str = Field(max_length=50, unique=True, nullable=False)
 
 
-class RecruitingPostType(BaseModel, table=True):
-    __tablename__ = "recruiting_post_types"
-    name: str = Field(max_length=50, unique=True, nullable=False)
-
-
 class RecruitmentType(BaseModel, table=True):
     __tablename__ = "recruitment_types"
     name: str = Field(max_length=50, unique=True, nullable=False)

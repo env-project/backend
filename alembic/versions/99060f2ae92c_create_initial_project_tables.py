@@ -1,8 +1,8 @@
-"""Create initial tables
+"""Create initial project tables
 
-Revision ID: a1d8fa6a1d8a
+Revision ID: 99060f2ae92c
 Revises:
-Create Date: 2025-08-06 06:23:32.597074
+Create Date: 2025-08-06 08:59:25.108440
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "a1d8fa6a1d8a"
+revision: str = "99060f2ae92c"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -66,21 +66,6 @@ def upgrade() -> None:
         sa.UniqueConstraint("name"),
     )
     op.create_index(op.f("ix_positions_id"), "positions", ["id"], unique=False)
-    op.create_table(
-        "recruiting_post_types",
-        sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.Column("name", sqlmodel.sql.sqltypes.AutoString(length=50), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("name"),
-    )
-    op.create_index(
-        op.f("ix_recruiting_post_types_id"),
-        "recruiting_post_types",
-        ["id"],
-        unique=False,
-    )
     op.create_table(
         "recruitment_types",
         sa.Column("id", sa.Uuid(), nullable=False),
@@ -154,7 +139,6 @@ def upgrade() -> None:
             "title", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False
         ),
         sa.Column("content", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column("post_type_id", sa.Uuid(), nullable=False),
         sa.Column(
             "band_name", sqlmodel.sql.sqltypes.AutoString(length=100), nullable=True
         ),
@@ -186,10 +170,6 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["orientation_id"],
             ["orientations.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["post_type_id"],
-            ["recruiting_post_types.id"],
         ),
         sa.ForeignKeyConstraint(
             ["recruitment_type_id"],
@@ -449,10 +429,6 @@ def downgrade() -> None:
     op.drop_table("regions")
     op.drop_index(op.f("ix_recruitment_types_id"), table_name="recruitment_types")
     op.drop_table("recruitment_types")
-    op.drop_index(
-        op.f("ix_recruiting_post_types_id"), table_name="recruiting_post_types"
-    )
-    op.drop_table("recruiting_post_types")
     op.drop_index(op.f("ix_positions_id"), table_name="positions")
     op.drop_table("positions")
     op.drop_index(op.f("ix_orientations_id"), table_name="orientations")

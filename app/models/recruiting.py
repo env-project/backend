@@ -42,7 +42,6 @@ class RecruitingPost(BaseModel, table=True):
     user_id: uuid.UUID = Field(foreign_key="users.id")
     title: str = Field(max_length=255)
     content: str
-    post_type_id: uuid.UUID = Field(foreign_key="recruiting_post_types.id")
     band_name: Optional[str] = Field(max_length=100, default=None)
     band_composition: Optional[str] = Field(default=None)
     activity_time: Optional[str] = Field(max_length=100, default=None)

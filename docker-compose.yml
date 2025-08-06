@@ -40,6 +40,20 @@ services:
       - db
     restart: always
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: band-matching-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    networks:
+      - shared-net
+    depends_on:
+      - db
+    restart: always
+
 volumes:
   postgres_data:
 
