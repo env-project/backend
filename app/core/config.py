@@ -1,5 +1,12 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# from dotenv import load_dotenv
+# import os
+
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# load_dotenv(os.path.join(BASE_DIR, ".env"), encoding="utf-8")
+
 
 class Settings(BaseSettings):
     # .env 파일을 읽어오도록 설정

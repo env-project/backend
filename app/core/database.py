@@ -1,8 +1,24 @@
-from sqlmodel import create_engine
+# app/core/database.py
+from typing import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
-# 비동기 드라이버를 사용하지 않는 경우 (단순한 시작)
-engine = create_engine(settings.DATABASE_URL, echo=True)
+# 비동기 엔진 생성
+async_engine = create_async_engine(settings.DATABASE_URL, echo=True)
 
-# 앞으로 데이터베이스 세션을 생성하는 함수 등을 여기에 추가
+# 비동기 세션 생성
+AsyncSessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session

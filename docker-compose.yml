@@ -11,6 +11,8 @@ services:
     container_name: band-matching-db
     ports:
       - "5432:5432"
+    networks:
+      - shared-net
     volumes:
       # 데이터베이스 데이터를 영구적으로 저장하기 위한 볼륨
       - postgres_data:/var/lib/postgresql/data
@@ -22,5 +24,25 @@ services:
       - POSTGRES_DB=banddb
     restart: always
 
+  app:
+    build: .
+    container_name: band-matching-app
+    ports:
+      - "8000:8000"
+    networks:
+      - shared-net
+    volumes:
+      - .:/app
+    # .env 파일을 직접 컨테이너 안으로 전달합니다.
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: always
+
 volumes:
   postgres_data:
+
+networks:
+  shared-net:
+    driver: bridge
