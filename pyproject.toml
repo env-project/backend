@@ -17,6 +17,7 @@ alembic = "^1.16.4"
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 pydantic-settings = "^2.10.1"
+psycopg2 = "^2.9.10"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -29,3 +30,6 @@ pre-commit = "^4.2.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

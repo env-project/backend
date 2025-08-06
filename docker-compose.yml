@@ -1,3 +1,4 @@
+# backend/docker-compose.yml
 # postgres/Dockerfile을 사용하여 커스텀 이미지를 빌드하고,
 # init-db 폴더의 스크립트를 실행하여 데이터베이스를 초기화
 
@@ -16,9 +17,9 @@ services:
       # 컨테이너가 처음 생성될 때 실행될 초기화 스크립트 폴더를 연결
       - ./init-db:/docker-entrypoint-initdb.d
     environment:
-      - POSTGRES_USER=band-user
-      - POSTGRES_PASSWORD=band-password
-      - POSTGRES_DB=band-db
+      - POSTGRES_USER=banduser
+      - POSTGRES_PASSWORD=bandpassword
+      - POSTGRES_DB=banddb
     restart: always
 
 volumes:
