@@ -1,8 +1,8 @@
 """Create initial project tables
 
-Revision ID: 99060f2ae92c
+Revision ID: 450ab444d248
 Revises:
-Create Date: 2025-08-06 08:59:25.108440
+Create Date: 2025-08-07 01:58:03.084351
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "99060f2ae92c"
+revision: str = "450ab444d248"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -166,6 +166,7 @@ def upgrade() -> None:
         ),
         sa.Column("views_count", sa.Integer(), nullable=False),
         sa.Column("comments_count", sa.Integer(), nullable=False),
+        sa.Column("bookmarks_count", sa.Integer(), nullable=False),
         sa.Column("is_closed", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
             ["orientation_id"],

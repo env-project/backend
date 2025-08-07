@@ -53,6 +53,7 @@ class RecruitingPost(BaseModel, table=True):
     other_conditions: Optional[str] = Field(default=None)
     views_count: int = Field(default=0)
     comments_count: int = Field(default=0)
+    bookmarks_count: int = Field(default=0)
     is_closed: bool = Field(default=False)
 
     author: "User" = Relationship(back_populates="recruiting_posts")
