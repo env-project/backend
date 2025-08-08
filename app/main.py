@@ -1,5 +1,8 @@
+# app/main.py
+
 from fastapi import FastAPI
-from app.api.v1.common import master_data
+from fastapi.staticfiles import StaticFiles
+from app.api.v1.common import master_data, image_upload
 
 app = FastAPI(
     title="Akhabi Project API",
@@ -15,7 +18,9 @@ def read_root():
     return {"status": "ok", "message": "Welcome to the Akhabi API!"}
 
 
-# 앞으로 이곳에 각 기능별 라우터를 추가
-# 예: app.include_router(user_router, prefix="/api/v1/users")
+# 이미지를 저장하는 디렉토리 경로를 /static/images로 서빙
+app.mount("/static/images", StaticFiles(directory="./uploaded_images"), name="images")
+
+# 라우터 등록
 app.include_router(master_data.router)
-# 이미 app/api/v1/master_data.py에 @router.get 등록되어 있으므로 prefix를 붙이면 경로 오류남(원한다면 제거하세요)
+app.include_router(image_upload.router)

@@ -1,3 +1,5 @@
+# app/services/master_data.py
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.common import (
@@ -8,6 +10,7 @@ from app.models.common import (
     Orientation,
     RecruitmentType,
 )
+
 
 async def get_all_master_data(db: AsyncSession):
     regions_result = await db.execute(select(Region))
@@ -29,10 +32,10 @@ async def get_all_master_data(db: AsyncSession):
     recruitment_types = recruitment_types_result.scalars().all()
 
     return {
-        "genres": genres,
-        "orientations": orientations,
-        "positions": positions,
         "regions": regions,
+        "positions": positions,
+        "genres": genres,
         "experience_levels": experience_levels,
+        "orientations": orientations,
         "recruitment_types": recruitment_types,
     }

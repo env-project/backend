@@ -23,11 +23,11 @@ class UserBookmark(BaseModel, table=True):
 
     user: "User" = Relationship(
         back_populates="bookmarks_sent",
-        sa_relationship_kwargs={"foreign_keys": ["UserBookmark.user_id"]},
+        sa_relationship_kwargs={"foreign_keys": [user_id]},
     )
     bookmarked_user: "User" = Relationship(
         back_populates="bookmarks_received",
-        sa_relationship_kwargs={"foreign_keys": ["UserBookmark.bookmarked_user_id"]},
+        sa_relationship_kwargs={"foreign_keys": [bookmarked_user_id]},
     )
 
 
