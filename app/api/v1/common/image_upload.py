@@ -1,3 +1,5 @@
+# app/api/v1/common/image_upload.py
+
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.services.image_upload import save_image_file
 from app.schemas.image_upload import ImageUploadResponse

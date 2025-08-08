@@ -22,5 +22,6 @@ def read_root():
 app.mount("/static/images", StaticFiles(directory="./uploaded_images"), name="images")
 
 # 라우터 등록
+# prefix는 해당 파일들 내부에 이미 지정되어 있어서 여기서는 넣지 않았는데, 보기에 편한 쪽으로 수정하셔도 됩니다
 app.include_router(master_data.router)
 app.include_router(image_upload.router)
