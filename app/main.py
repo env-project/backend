@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.v1 import common
+from app.api.v1.common import master_data
 
 app = FastAPI(
     title="Akhabi Project API",
@@ -17,5 +17,5 @@ def read_root():
 
 # 앞으로 이곳에 각 기능별 라우터를 추가
 # 예: app.include_router(user_router, prefix="/api/v1/users")
-app.include_router(common.router)
-# 이미 app/api/v1/common.py에 @router.get 등록되어 있으므로 prefix를 붙이면 경로 오류남(원한다면 제거하세요)
+app.include_router(master_data.router)
+# 이미 app/api/v1/master_data.py에 @router.get 등록되어 있으므로 prefix를 붙이면 경로 오류남(원한다면 제거하세요)
