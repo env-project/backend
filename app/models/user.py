@@ -65,11 +65,11 @@ class User(BaseModel, table=True):
 
     bookmarks_sent: List["UserBookmark"] = Relationship(
         back_populates="user",
-        sa_relationship_kwargs={"foreign_keys": ["UserBookmark.user_id"]},
+        sa_relationship_kwargs={"foreign_keys": "UserBookmark.user_id"},
     )
     bookmarks_received: List["UserBookmark"] = Relationship(
         back_populates="bookmarked_user",
-        sa_relationship_kwargs={"foreign_keys": ["UserBookmark.bookmarked_user_id"]},
+        sa_relationship_kwargs={"foreign_keys": "UserBookmark.bookmarked_user_id"},
     )
     post_bookmarks: List["PostBookmark"] = Relationship(back_populates="user")
 
@@ -87,10 +87,10 @@ class Profile(BaseModel, table=True):
         back_populates="profiles", link_model=ProfileRegionLink
     )
     positions: List["Position"] = Relationship(
-        back_populates="positions", link_model=ProfilePositionLink
+        back_populates="profiles", link_model=ProfilePositionLink
     )
     genres: List["Genre"] = Relationship(
-        back_populates="genres", link_model=ProfileGenreLink
+        back_populates="profiles", link_model=ProfileGenreLink
     )
 
 

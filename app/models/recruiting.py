@@ -86,9 +86,11 @@ class Comment(BaseModel, table=True):
 
     post: "RecruitingPost" = Relationship(back_populates="comments")
     author: "User" = Relationship(back_populates="comments")
-
     parent: Optional["Comment"] = Relationship(
         back_populates="children",
-        sa_relationship_kwargs={"remote_side": ["Comment.id"]},
+        sa_relationship_kwargs={"remote_side": lambda: [Comment.id]},
     )
-    children: List["Comment"] = Relationship(back_populates="parent")
+    children: List["Comment"] = Relationship(
+        back_populates="parent",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
