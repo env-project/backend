@@ -1,6 +1,7 @@
 # app/main.py
 from fastapi import FastAPI
 
+from app.api.v1.recruiting_router import recruiting_router
 from app.api.v1.endpoints import user as user_router  # [추가]
 
 app = FastAPI(
@@ -19,3 +20,4 @@ def read_root():
 
 # [추가] user_router를 /api/v1/users 경로에 연결합니다.
 app.include_router(user_router.router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(recruiting_router)
