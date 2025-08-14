@@ -7,6 +7,7 @@ class PostNotFound(Exception):
         self.message = message
         super().__init__(self.message)
 
+
 class BookmarkNotFound(Exception):
     """
     북마크를 찾을 수 없을 때

@@ -23,7 +23,12 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from app.models import bookmark_model, common_model, recruiting_model, user_model  # noqa
+from app.models import (
+    bookmark_model,
+    common_model,
+    recruiting_model,
+    user_model,
+)  # noqa
 
 target_metadata = SQLModel.metadata
 

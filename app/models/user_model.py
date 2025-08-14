@@ -38,6 +38,7 @@ class ProfileGenreLink(SQLModel, table=True):
 
 # --- 주 테이블 (Main Tables) ---
 
+
 class User(BaseModel, table=True):
     __tablename__ = "users"
 

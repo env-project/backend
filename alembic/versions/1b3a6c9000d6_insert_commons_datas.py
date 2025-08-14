@@ -5,6 +5,7 @@ Revises: e501a0a11a86
 Create Date: 2025-08-12 11:58:47.668093
 
 """
+
 import datetime
 from typing import Sequence, Union
 from zoneinfo import ZoneInfo
@@ -14,8 +15,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '1b3a6c9000d6'
-down_revision: Union[str, Sequence[str], None] = 'e501a0a11a86'
+revision: str = "1b3a6c9000d6"
+down_revision: Union[str, Sequence[str], None] = "e501a0a11a86"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
