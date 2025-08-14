@@ -11,7 +11,9 @@ if TYPE_CHECKING:
     from .recruiting import RecruitingPost
     from .user import User
 
-
+# 여기에 하나 추가해야 됨(row)
+# 해당되는 유저의 bookmark count 인크리먼트(+1)
+# 삭제할 때는 row부터 > 그 다음 -1
 class UserBookmark(BaseModel, table=True):
     __tablename__ = "user_bookmarks"
     __table_args__ = (

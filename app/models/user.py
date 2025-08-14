@@ -38,7 +38,6 @@ class ProfileGenreLink(SQLModel, table=True):
 
 # --- 주 테이블 (Main Tables) ---
 
-
 class User(BaseModel, table=True):
     __tablename__ = "users"
 
@@ -46,6 +45,7 @@ class User(BaseModel, table=True):
     password_hash: Optional[str] = Field(default=None)
     nickname: str = Field(max_length=20, unique=True, index=True)
     is_active: bool = Field(default=True)
+    bookmark_count: int = Field(default=0, nullable=False)
     last_login_at: Optional[datetime] = Field(default=None)
 
     login_type: str = Field(
