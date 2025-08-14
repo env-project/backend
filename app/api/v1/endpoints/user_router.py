@@ -6,10 +6,10 @@ from app.core.database import get_async_session  # 비동기 세션을 가져옴
 from app.schemas.user import UserCreate, UserRead
 from app.services.user_service import user_service
 
-router = APIRouter()
+user_router = APIRouter()
 
 
-@router.post("/", response_model=UserRead, status_code=201)
+@user_router.post("/", response_model=UserRead, status_code=201)
 # [수정] 함수를 반드시 'async def'로 정의해야 합니다.
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_async_session)):
     """

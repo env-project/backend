@@ -2,7 +2,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.models.common import (
+from app.models.common_model import (
     Region,
     Position,
     Genre,

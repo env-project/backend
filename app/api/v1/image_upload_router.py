@@ -1,13 +1,13 @@
-# app/api/v1/common/image_upload.py
+# app/api/v1/image_upload_router.py
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.services.image_upload_service import save_image_file
 from app.schemas.image_upload_schema import ImageUploadResponse
 
-router = APIRouter()
+image_upload_router = APIRouter()
 
 
-@router.post("/", response_model=ImageUploadResponse, status_code=201)
+@image_upload_router.post("/", response_model=ImageUploadResponse, status_code=201)
 async def upload_image(file: UploadFile = File(...)):
     try:
         image_url = await save_image_file(file)

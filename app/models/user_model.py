@@ -10,9 +10,9 @@ from sqlmodel import Field, Relationship, SQLModel
 from .base_model import BaseModel
 
 if TYPE_CHECKING:
-    from .bookmark import PostBookmark, UserBookmark
-    from .common import Genre, Position, Region
-    from .recruiting import Comment, RecruitingPost
+    from .bookmark_model import PostBookmark, UserBookmark
+    from .common_model import Genre, Position, Region
+    from .recruiting_model import Comment, RecruitingPost
 
 # --- M:N 연결 테이블 (Link Tables) ---
 

@@ -2,7 +2,7 @@
 from sqlmodel import Session
 
 from app.core.security import get_password_hash
-from app.models.user import User
+from app.models.user_model import User
 from app.schemas.user import UserCreate
 
 

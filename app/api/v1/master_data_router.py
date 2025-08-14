@@ -1,4 +1,4 @@
-# app/api/v1/common/master_data.py
+# app/api/v1/master_data_router.py
 
 # 에러 체크용 import
 from fastapi import HTTPException
@@ -12,10 +12,10 @@ from app.core.database import get_async_session  # 비동기 세션 의존성
 
 # 에러 체크용 logger
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/v1/common", tags=["Common"])
+master_data_router = APIRouter(prefix="/api/v1/common", tags=["Common"])
 
 
-@router.get("/", response_model=MasterDataResponse)
+@master_data_router.get("/", response_model=MasterDataResponse)
 async def read_master_data(
     db: AsyncSession = Depends(get_async_session),
 ):  # 비동기 방식
