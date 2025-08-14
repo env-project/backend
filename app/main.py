@@ -5,8 +5,7 @@ from app.api.v1.image_upload_router import image_upload_router
 from app.api.v1.master_data_router import master_data_router
 from app.api.v1.recruiting_router import recruiting_router
 from app.api.v1.endpoints.user_router import user_router
-
-# from app.api.v1.endpoints import user as user_router  # [추가]
+# from app.api.v1.endpoints import user as user_router  # [추가] < 이게 원본이었습니다
 
 app = FastAPI(
     title="Akabi Project API",
