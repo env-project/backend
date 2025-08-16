@@ -1,8 +1,8 @@
-"""initial migration
+"""Create final initial models
 
-Revision ID: e501a0a11a86
+Revision ID: f34cdecba708
 Revises:
-Create Date: 2025-08-12 02:15:05.152805
+Create Date: 2025-08-16 20:04:44.456958
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "e501a0a11a86"
+revision: str = "f34cdecba708"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -150,6 +150,8 @@ def upgrade() -> None:
             "social_image_url", sqlmodel.sql.sqltypes.AutoString(), nullable=True
         ),
         sa.Column("is_public", sa.Boolean(), nullable=False),
+        sa.Column("views_count", sa.Integer(), nullable=False),
+        sa.Column("bookmarks_count", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
@@ -172,6 +174,7 @@ def upgrade() -> None:
             "title", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False
         ),
         sa.Column("content", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("image_url", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column(
             "band_name", sqlmodel.sql.sqltypes.AutoString(length=100), nullable=True
         ),
@@ -181,7 +184,6 @@ def upgrade() -> None:
         sa.Column(
             "activity_time", sqlmodel.sql.sqltypes.AutoString(length=100), nullable=True
         ),
-        sa.Column("orientation_id", sa.Uuid(), nullable=False),
         sa.Column(
             "contact_info", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True
         ),
@@ -193,7 +195,6 @@ def upgrade() -> None:
             sqlmodel.sql.sqltypes.AutoString(length=100),
             nullable=True,
         ),
-        sa.Column("recruitment_type_id", sa.Uuid(), nullable=False),
         sa.Column(
             "other_conditions", sqlmodel.sql.sqltypes.AutoString(), nullable=True
         ),
@@ -201,6 +202,8 @@ def upgrade() -> None:
         sa.Column("comments_count", sa.Integer(), nullable=False),
         sa.Column("bookmarks_count", sa.Integer(), nullable=False),
         sa.Column("is_closed", sa.Boolean(), nullable=False),
+        sa.Column("orientation_id", sa.Uuid(), nullable=True),
+        sa.Column("recruitment_type_id", sa.Uuid(), nullable=True),
         sa.ForeignKeyConstraint(
             ["orientation_id"],
             ["orientations.id"],
@@ -302,9 +305,9 @@ def upgrade() -> None:
         sa.Column("post_id", sa.Uuid(), nullable=False),
         sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("content", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column("parent_comment_id", sa.Uuid(), nullable=True),
         sa.Column("path", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
         sa.Column("is_deleted", sa.Boolean(), nullable=False),
+        sa.Column("parent_comment_id", sa.Uuid(), nullable=True),
         sa.ForeignKeyConstraint(
             ["parent_comment_id"],
             ["comments.id"],

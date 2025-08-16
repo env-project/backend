@@ -33,7 +33,7 @@ services:
       - shared-net
     volumes:
       - .:/app
-    # .env 파일을 직접 컨테이너 안으로 전달합니다.
+    # .env 파일을 직접 컨테이너 안으로 전달
     env_file:
       - .env
     depends_on:

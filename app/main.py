@@ -1,10 +1,13 @@
 # app/main.py
 from fastapi import FastAPI
 
+from app.api.v1.endpoints import auth as auth_router
+from app.api.v1.endpoints import profile as profile_router
+from app.api.v1.endpoints.user_router import user_router
 from app.api.v1.image_upload_router import image_upload_router
 from app.api.v1.master_data_router import master_data_router
 from app.api.v1.recruiting_router import recruiting_router
-from app.api.v1.endpoints.user_router import user_router
+
 # from app.api.v1.endpoints import user as user_router  # [추가] < 이게 원본이었습니다
 
 app = FastAPI(
@@ -15,12 +18,15 @@ app = FastAPI(
 
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "Welcome to the Akhabi API"}
+    return {"status": "ok", "message": "Welcome to the Akhabi API!"}
 
 
 # 앞으로 이곳에 각 기능별 라우터를 추가
 # 예: app.include_router(user_router, prefix="/api/v1/users")
 
+app.include_router(user_router.router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(profile_router.router, prefix="/api/v1/profiles", tags=["Profiles"])
 # 이미지 업로드
 app.include_router(
     image_upload_router, prefix="/api/v1/common/uploads/images", tags=["Image Upload"]
@@ -41,6 +47,6 @@ app.include_router(
     master_data_router, prefix="/api/v1/recruiting-posts", tags=["Post Bookmark"]
 )
 
-# [추가] user_router를 /api/v1/users 경로에 연결합니다.
+# user_router를 /api/v1/users 경로에 연결
 app.include_router(user_router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(recruiting_router)
