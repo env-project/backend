@@ -1,8 +1,11 @@
 # app/api/v1/bookmark_router.py
 
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.v1.dependencies import get_current_user
 
 # DB 세션 의존성
 from app.core.database import get_async_session
@@ -13,11 +16,11 @@ from app.core.database import get_async_session
 # from app.core.auth import get_current_user
 from app.models.user_model import User
 
-# 북마크 서비스
-from app.services.bookmark_service import BookmarkService
-
 # 응답 스키마
 from app.schemas.bookmark_schema import BookmarkResponse
+
+# 북마크 서비스
+from app.services.bookmark_service import BookmarkService
 
 bookmark_router = APIRouter()
 
