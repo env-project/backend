@@ -7,9 +7,9 @@ from sqlmodel import Field, Relationship, SQLModel
 from .base_model import BaseModel
 
 if TYPE_CHECKING:
-    from .bookmark import PostBookmark
-    from .common import Genre, Position, Region
-    from .user import User
+    from .bookmark_model import PostBookmark
+    from .common_model import Genre, Position, Region
+    from .user_model import User
 
 # --- M:N 연결 테이블 (Link Tables) ---
 

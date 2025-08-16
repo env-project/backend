@@ -4,17 +4,17 @@ from typing import TYPE_CHECKING, List
 from sqlmodel import Field, Relationship
 
 from .base_model import BaseModel
-from .recruiting import (
+from .recruiting_model import (
     RecruitingPostGenreLink,
     RecruitingPostPositionLink,
     RecruitingPostRegionLink,
 )
-from .user import ProfileGenreLink, ProfilePositionLink, ProfileRegionLink
+from .user_model import ProfileGenreLink, ProfilePositionLink, ProfileRegionLink
 
 # 순환 참조를 피하기 위해 타입 검사 시에만 import
 if TYPE_CHECKING:
-    from .recruiting import RecruitingPost
-    from .user import Profile
+    from .recruiting_model import RecruitingPost
+    from .user_model import Profile
 
 
 class Region(BaseModel, table=True):

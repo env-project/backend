@@ -1,4 +1,4 @@
-# app/models/bookmark.py
+# app/models/bookmark_model.py
 import uuid
 from typing import TYPE_CHECKING
 
@@ -8,10 +8,13 @@ from sqlmodel import Field, Relationship
 from .base_model import BaseModel
 
 if TYPE_CHECKING:
-    from .recruiting import RecruitingPost
-    from .user import User
+    from .recruiting_model import RecruitingPost
+    from .user_model import User
 
 
+# 여기에 하나 추가해야 됨(row)
+# 해당되는 유저의 bookmark count auto-increment(+1)
+# 삭제할 때는 row부터 > 그 다음 -1
 class UserBookmark(BaseModel, table=True):
     __tablename__ = "user_bookmarks"
     __table_args__ = (

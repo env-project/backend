@@ -1,8 +1,8 @@
 # app/models/__init__.py
 
 from .base_model import BaseModel
-from .bookmark import PostBookmark, UserBookmark
-from .common import (
+from .bookmark_model import PostBookmark, UserBookmark
+from .common_model import (
     ExperienceLevel,
     Genre,
     Orientation,
@@ -10,14 +10,14 @@ from .common import (
     RecruitmentType,
     Region,
 )
-from .recruiting import (
+from .recruiting_model import (
     Comment,
     RecruitingPost,
     RecruitingPostGenreLink,
     RecruitingPostPositionLink,
     RecruitingPostRegionLink,
 )
-from .user import (
+from .user_model import (
     Profile,
     ProfileGenreLink,
     ProfilePositionLink,

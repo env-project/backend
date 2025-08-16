@@ -10,9 +10,9 @@ from sqlmodel import Field, Relationship, SQLModel
 from .base_model import BaseModel
 
 if TYPE_CHECKING:
-    from .bookmark import PostBookmark, UserBookmark
-    from .common import Genre, Position, Region
-    from .recruiting import Comment, RecruitingPost
+    from .bookmark_model import PostBookmark, UserBookmark
+    from .common_model import Genre, Position, Region
+    from .recruiting_model import Comment, RecruitingPost
 
 # --- M:N 연결 테이블 (Link Tables) ---
 
@@ -46,6 +46,7 @@ class User(BaseModel, table=True):
     password_hash: Optional[str] = Field(default=None)
     nickname: str = Field(max_length=20, unique=True, index=True)
     is_active: bool = Field(default=True)
+    bookmark_count: int = Field(default=0, nullable=False)
     last_login_at: Optional[datetime] = Field(default=None)
 
     login_type: str = Field(

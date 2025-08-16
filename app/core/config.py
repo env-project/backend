@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
+    image_upload_dir: str
+    image_base_url: str
+
+    # 이미지 업로드 관련 환경 변수
+    IMAGE_UPLOAD_DIR: str = "./uploaded_images"
+    IMAGE_BASE_URL: str = "http://localhost:8000/static/images"  # 상황에 맞게 수정
 
 
 # 설정 객체 생성
