@@ -9,7 +9,7 @@ from sqlmodel import select
 
 from app.core.config import settings
 from app.core.database import get_async_session
-from app.models.user import User
+from app.models.user import Profile, User
 from app.schemas.token import TokenPayload
 
 # /api/v1/auth/token 경로에서 토큰을 가져오도록 설정
@@ -37,7 +37,11 @@ async def get_current_user(
     # User를 조회할 때, profile 관계를 즉시 로딩(eager load)하도록 옵션을 추가
     statement = (
         select(User)
-        .options(selectinload(User.profile))
+        .options(
+            selectinload(User.profile).selectinload(Profile.regions),
+            selectinload(User.profile).selectinload(Profile.positions),
+            selectinload(User.profile).selectinload(Profile.genres),
+        )
         .where(User.id == token_data.sub)
     )
     result = await db.execute(statement)

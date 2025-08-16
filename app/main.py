@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 
 from app.api.v1.endpoints import auth as auth_router
+from app.api.v1.endpoints import profile as profile_router
 from app.api.v1.endpoints import user as user_router
 from app.api.v1.recruiting_router import recruiting_router
 
@@ -21,4 +22,5 @@ def read_root():
 
 app.include_router(user_router.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(profile_router.router, prefix="/api/v1/profiles", tags=["Profiles"])
 app.include_router(recruiting_router)

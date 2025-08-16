@@ -8,13 +8,11 @@ from sqlalchemy.dialects.postgresql import ENUM, JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base_model import BaseModel
+from .common import Genre, Position, Region
 
 if TYPE_CHECKING:
     from .bookmark import PostBookmark, UserBookmark
-    from .common import Genre, Position, Region
     from .recruiting import Comment, RecruitingPost
-
-# --- M:N 연결 테이블 (Link Tables) ---
 
 
 class ProfileRegionLink(SQLModel, table=True):
@@ -34,9 +32,6 @@ class ProfileGenreLink(SQLModel, table=True):
     __tablename__ = "profile_genres"
     profile_id: uuid.UUID = Field(foreign_key="profiles.id", primary_key=True)
     genre_id: uuid.UUID = Field(foreign_key="genres.id", primary_key=True)
-
-
-# --- 주 테이블 (Main Tables) ---
 
 
 class User(BaseModel, table=True):
@@ -81,17 +76,13 @@ class Profile(BaseModel, table=True):
     image_url: Optional[str] = Field(default=None)
     social_image_url: Optional[str] = Field(default=None)
     is_public: bool = Field(default=True)
+    views_count: int = Field(default=0)
+    bookmarks_count: int = Field(default=0)
 
     user: "User" = Relationship(back_populates="profile")
-    regions: List["Region"] = Relationship(
-        back_populates="profiles", link_model=ProfileRegionLink
-    )
-    positions: List["Position"] = Relationship(
-        back_populates="profiles", link_model=ProfilePositionLink
-    )
-    genres: List["Genre"] = Relationship(
-        back_populates="profiles", link_model=ProfileGenreLink
-    )
+    regions: List["Region"] = Relationship(link_model=ProfileRegionLink)
+    positions: List["Position"] = Relationship(link_model=ProfilePositionLink)
+    genres: List["Genre"] = Relationship(link_model=ProfileGenreLink)
 
 
 class SocialAccount(BaseModel, table=True):
