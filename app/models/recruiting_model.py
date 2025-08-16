@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, List, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base_model import BaseModel
-from .common import Genre, Position, Region
+from .common_model import Genre, Position, Region
 
 if TYPE_CHECKING:
-    from .bookmark import PostBookmark
-    from .user import User
+    from .bookmark_model import PostBookmark
+    from .user_model import User
 
 
 class RecruitingPostRegionLink(SQLModel, table=True):

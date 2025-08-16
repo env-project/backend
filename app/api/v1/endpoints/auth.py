@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from app.core.database import get_async_session
 from app.core.security import verify_password
-from app.models.user import User
+from app.models.user_model import User
 from app.schemas.token import Token
 from app.services.auth_service import auth_service
 

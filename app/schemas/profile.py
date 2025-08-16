@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from sqlmodel import SQLModel
 
-from app.models.user import ProfilePositionLink
+from app.models.user_model import ProfilePositionLink
 
 from .common import ExperienceLevelRead, GenreRead, PositionRead, RegionRead
 

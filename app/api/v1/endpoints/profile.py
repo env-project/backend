@@ -8,8 +8,8 @@ from sqlmodel import select
 
 from app.api.v1.dependencies import get_current_user
 from app.core.database import get_async_session
-from app.models.bookmark import UserBookmark
-from app.models.user import User
+from app.models.bookmark_model import UserBookmark
+from app.models.user_model import User
 from app.schemas.profile import (
     PositionWithExperienceRead,
     ProfileDetailRead,

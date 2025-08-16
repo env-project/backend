@@ -9,7 +9,7 @@ from sqlmodel import select
 
 from app.core.config import settings
 from app.core.database import get_async_session
-from app.models.user import Profile, User
+from app.models.user_model import Profile, User
 from app.schemas.token import TokenPayload
 
 # /api/v1/auth/token 경로에서 토큰을 가져오도록 설정

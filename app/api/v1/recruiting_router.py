@@ -1,4 +1,3 @@
-
 import logging
 import uuid
 
@@ -48,9 +47,9 @@ recruiting_router = APIRouter(
     response_model=list[GetRecruitingResponse],
 )
 async def api_get_recruiting(
-        limit: int = Query(default=10, le=10),
-        cursor: int = Query(default=0),
-        db: AsyncSession = Depends(get_async_session),
+    limit: int = Query(default=10, le=10),
+    cursor: int = Query(default=0),
+    db: AsyncSession = Depends(get_async_session),
 ) -> list[GetRecruitingResponse]:
 
     # 값이 틀리면 400 error
@@ -91,8 +90,8 @@ async def api_get_recruiting(
     status_code=status.HTTP_201_CREATED,
 )
 async def api_create_recruiting(
-        create_recruiting_request: RecruitingDetailRequest,
-        db: AsyncSession = Depends(get_async_session),
+    create_recruiting_request: RecruitingDetailRequest,
+    db: AsyncSession = Depends(get_async_session),
 ) -> None:
     # Permission 추가 (본인이 작성한 구인글인지 여부 확인)
     # user_id 여기서 받아야함.
@@ -141,8 +140,8 @@ async def api_create_recruiting(
     status_code=status.HTTP_200_OK,
 )
 async def api_get_recruiting_detail(
-        post_id: uuid.UUID,
-        db: AsyncSession = Depends(get_async_session),
+    post_id: uuid.UUID,
+    db: AsyncSession = Depends(get_async_session),
 ) -> GetRecruitingDetailResponse:
 
     # Permission 추가 (본인이 작성한 구인글인지 여부 확인)
@@ -194,9 +193,9 @@ async def api_get_recruiting_detail(
     status_code=status.HTTP_200_OK,
 )
 async def api_update_recruiting_detail(
-        post_id: uuid.UUID,
-        update_recruiting_detail_request: RecruitingDetailRequest,
-        db: AsyncSession = Depends(get_async_session),
+    post_id: uuid.UUID,
+    update_recruiting_detail_request: RecruitingDetailRequest,
+    db: AsyncSession = Depends(get_async_session),
 ) -> None:
 
     # Permission 추가 (본인이 작성한 구인글인지 여부 확인)
@@ -250,9 +249,9 @@ async def api_update_recruiting_detail(
     status_code=status.HTTP_200_OK,
 )
 async def api_update_recruiting_is_closed_status(
-        post_id: uuid.UUID,
-        is_closed: bool,
-        db: AsyncSession = Depends(get_async_session),
+    post_id: uuid.UUID,
+    is_closed: bool,
+    db: AsyncSession = Depends(get_async_session),
 ) -> None:
 
     # Permission 추가 (본인이 작성한 구인글인지 여부 확인)
@@ -301,8 +300,8 @@ async def api_update_recruiting_is_closed_status(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def api_delete_recruiting(
-        post_id: uuid.UUID,
-        db: AsyncSession = Depends(get_async_session),
+    post_id: uuid.UUID,
+    db: AsyncSession = Depends(get_async_session),
 ) -> None:
 
     # Permission 추가 (본인이 작성한 구인글인지 여부 확인)

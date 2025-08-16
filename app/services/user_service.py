@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import delete, select
 
 from app.core.security import get_password_hash
-from app.models.common import Genre, Region
-from app.models.user import Profile, ProfilePositionLink, User
+from app.models.common_model import Genre, Region
+from app.models.user_model import Profile, ProfilePositionLink, User
 from app.schemas.profile import ProfileUpdate
 from app.schemas.user import UserCreate
 
