@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     image_base_url: str
 
     # 이미지 업로드 관련 환경 변수
-    IMAGE_UPLOAD_DIR: str = "./uploaded_images"
+    IMAGE_UPLOAD_DIR: str = "~/uploads/images"  # ~/uploads/images
     IMAGE_BASE_URL: str = "http://localhost:8000/static/images"  # 상황에 맞게 수정
 
 
