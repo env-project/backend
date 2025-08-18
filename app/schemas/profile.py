@@ -1,13 +1,17 @@
 # app/schemas/profile.py
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlmodel import SQLModel
 
 from app.models.user_model import ProfilePositionLink
 
+# from app.schemas.common import ExperienceLevelRead, PositionRead
 from .common import ExperienceLevelRead, GenreRead, PositionRead, RegionRead
+
+if TYPE_CHECKING:
+    from app.models.user_model import ProfilePositionLink
 
 
 # --- Request Schemas ---
@@ -43,7 +47,7 @@ class PositionWithExperienceRead(SQLModel):
     experience_level: ExperienceLevelRead
 
     @classmethod
-    def from_link(cls, link: ProfilePositionLink):
+    def from_link(cls, link: "ProfilePositionLink"):
         return cls(position=link.position, experience_level=link.experience_level)
 
 
@@ -53,7 +57,7 @@ class ProfileListRead(SQLModel):
     image_url: str | None
     is_bookmarked: bool
     regions: List[RegionRead]
-    positions: List[PositionWithExperienceRead]
+    position_links: List[PositionWithExperienceRead]
 
 
 class ProfileListResponse(SQLModel):
@@ -67,7 +71,7 @@ class ProfileDetailRead(SQLModel):
     is_public: bool
     is_bookmarked: bool
     regions: List[RegionRead]
-    positions: List[PositionWithExperienceRead]
+    position_links: List[PositionWithExperienceRead]
     genres: List[GenreRead]
     recent_posts: List[PostSummary]
     recent_comments: List[CommentSummary]
