@@ -1,14 +1,15 @@
 # app/services/bookmark_service.py
 
 import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # 북마크 관련 CRUD 함수
 from app.crud.bookmark_crud import (
-    create_user_bookmark,
-    delete_user_bookmark,
     create_post_bookmark,
+    create_user_bookmark,
     delete_post_bookmark,
+    delete_user_bookmark,
     update_bookmark_count,
 )
 

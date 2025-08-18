@@ -94,7 +94,9 @@ class ProfileService:
             select(Profile)
             .join(Profile.user)
             .options(
-                selectinload(Profile.regions),
+                selectinload(
+                    Profile.regions
+                ),  # 여기 오류나니까, model을 고치거나 code를 고치거나
                 selectinload(Profile.positions).joinedload(Position.experience_level),
             )
         )

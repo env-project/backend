@@ -1,31 +1,28 @@
-"""insert_master_data_for_app
+"""Insert master data
 
-Revision ID: 4640c9b0ca5a
-Revises: f34cdecba708
-Create Date: 2025-08-17 05:05:45.919060
+Revision ID: 6abb5ade1ce0
+Revises: e508302174d3
+Create Date: 2025-08-18 12:07:21.743225
 
 """
 
-import datetime
+from datetime import datetime
 from typing import Sequence, Union
-from zoneinfo import ZoneInfo
 
 import sqlalchemy as sa
 
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "4640c9b0ca5a"
-down_revision: Union[str, Sequence[str], None] = "f34cdecba708"
+revision: str = "6abb5ade1ce0"
+down_revision: Union[str, Sequence[str], None] = "e508302174d3"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
-
-KST = ZoneInfo("Asia/Seoul")
 
 
 def upgrade():
     """Upgrade schema."""
-    now = datetime.datetime.now(KST)
+    now = datetime.utcnow()
 
     # regions
     op.bulk_insert(

@@ -24,6 +24,7 @@ async def login_for_access_token(
     # 1. 이메일(username 필드 사용)로 사용자를 찾고
     statement = select(User).where(User.email == form_data.username)
     result = await db.execute(statement)
+    print("결과:", result)
     user = result.scalar_one_or_none()
 
     # 2. 사용자가 없거나 비밀번호가 틀리면 에러를 반환

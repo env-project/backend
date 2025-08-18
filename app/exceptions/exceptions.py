@@ -8,11 +8,41 @@ class PostNotFound(Exception):
         super().__init__(self.message)
 
 
-class BookmarkNotFound(Exception):
+class CommentNotFound(Exception):
     """
-    북마크를 찾을 수 없을 때
+    댓글을 찾을 수 없을 때
     """
 
-    def __init__(self, message: str = "해당 북마크를 찾을 수 없습니다."):
+    def __init__(self, message: str = "해당 댓글을 찾을 수 없습니다."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class NotFirstParentComment(Exception):
+    """
+    최상위 부모 댓글이 아닐 때
+    """
+
+    def __init__(self, message: str = "부모 댓글 id가 잘못되었습니다."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class UserNotRecruitingPostOwner(Exception):
+    """
+    구인글을 작성한 사용자가 아닐 때
+    """
+
+    def __init__(self, message: str = "해당 게시글에 대한 권한이 없습니다."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class UserNotCommentOwner(Exception):
+    """
+    댓글을 작성한 사용자가 아닐 때
+    """
+
+    def __init__(self, message: str = "해당 댓글에 대한 권한이 없습니다."):
         self.message = message
         super().__init__(self.message)

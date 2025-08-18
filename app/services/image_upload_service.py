@@ -2,8 +2,10 @@
 
 import os
 import uuid
-from app.core.config import settings
+
 from fastapi import HTTPException
+
+from app.core.config import settings
 
 
 async def save_image_file(file) -> str:

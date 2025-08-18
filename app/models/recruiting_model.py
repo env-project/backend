@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, List, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base_model import BaseModel
-from .common_model import Genre, Position, Region
 
 if TYPE_CHECKING:
     from .bookmark_model import PostBookmark
+    from .common_model import Genre, Position, Region
     from .user_model import User
 
 
