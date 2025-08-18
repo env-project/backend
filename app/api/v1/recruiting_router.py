@@ -25,6 +25,7 @@ from app.services.recruiting_service import (
     service_get_recruiting_detail,
     service_update_recruiting_detail,
     service_update_recruiting_is_closed_status,
+    service_get_recruiting_list,
 )
 
 # 로거 설정 (별도의 설정 파일 필요)
