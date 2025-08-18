@@ -24,7 +24,9 @@ router = APIRouter()
 @router.get("/", response_model=ProfileListResponse)
 async def get_profiles(
     db: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(get_current_user),  # 아 swagger에 test기가 있네요. 주석취소했습니다.
+    current_user: User = Depends(
+        get_current_user
+    ),  # 아 swagger에 test기가 있네요. 주석취소했습니다.
     limit: int = Query(20, gt=0, le=100),
     cursor: Optional[str] = Query(None),
     nickname: Optional[str] = Query(None),

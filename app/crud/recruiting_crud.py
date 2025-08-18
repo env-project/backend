@@ -39,9 +39,19 @@ async def get_recruiting_by_id(
     """
     post_id로 구인글을 조회합니다.
     """
-    stmt = select(RecruitingPost).where(RecruitingPost.id == post_id)
+    stmt = (
+        select(RecruitingPost)
+        .options(
+            selectinload(RecruitingPost.author),
+            selectinload(RecruitingPost.comments),
+            selectinload(RecruitingPost.regions),
+            selectinload(RecruitingPost.genres),
+            selectinload(RecruitingPost.positions),
+            selectinload(RecruitingPost.bookmarks),
+        )
+        .where(RecruitingPost.id == post_id)
+    )
     result = await db.execute(stmt)
-
     return result.scalars().first()
 
 
@@ -416,21 +426,14 @@ async def update_recruiting_is_closed_status(
 
 # FR-017: 구인글 삭제
 async def delete_recruiting(db: AsyncSession, post: RecruitingPost) -> None:
-    async with db.begin():
-        # SQLModel/SQLAlchemy: 관련 댓글 목록 자동 로드
-        for comment in post.comments:
-            await db.delete(comment)
-        for bookmark in post.bookmarks:
-            await db.delete(bookmark)
+    # async with db.begin():  # sqlalchemy.exc.InvalidRequestError: A transaction is already begun on this Session.
 
-        for region in post.regions:
-            await db.delete(region)
-        for genre in post.genres:
-            await db.delete(genre)
-        for position in post.positions:
-            await db.delete(position)
+    # SQLModel/SQLAlchemy: 관련 자동 로드 및 삭제도 해주네
+    # for region in post.regions:
+    #     await db.delete(region)
 
-        await db.delete(post)
+    await db.delete(post)
+    await db.commit()
 
 
 ## Comment

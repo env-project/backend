@@ -15,9 +15,7 @@ from app.services.comment_service import (
     service_update_comment_content,
 )
 
-comment_router = APIRouter(
-    prefix="/api/v1/comments", tags=["comment"], redirect_slashes=False
-)
+comment_router = APIRouter()
 
 logger = logging.getLogger(__name__)
 

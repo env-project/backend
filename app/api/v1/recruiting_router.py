@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from app.api.v1.dependencies import (
+    get_current_required,
     get_current_user_or_none,
 )
 from app.core.database import get_async_session
@@ -35,14 +36,12 @@ from app.services.recruiting_service import (
 # 로거 설정 (별도의 설정 파일 필요)
 logger = logging.getLogger(__name__)
 
-recruiting_router = APIRouter(
-    prefix="/api/v1/recruiting-posts", tags=["recruiting"], redirect_slashes=False
-)
+recruiting_router = APIRouter()  # redirect_slashes=False
 
 
 # test 용 user_id
-# current_user_id = uuid.UUID("0198bd11-dbbf-76d5-be2a-8a039b65d68c")  # root
-current_user_id = uuid.UUID("0198bd39-fd00-7007-b563-8940c6ee00f3")  # user
+# current_user_id = uuid.UUID("0198bf5e-3453-752c-a19c-ba0ee0ad03f1")  # root
+current_user_id = uuid.UUID("0198bf5e-6cff-7e96-a328-a690760d4756")  # user
 
 
 # FR-011: 구인글 목록 조회
@@ -212,10 +211,10 @@ async def api_update_recruiting_is_closed_status(
     post_id: uuid.UUID,
     is_closed: bool,
     db: AsyncSession = Depends(get_async_session),
+    current_user: str = Depends(get_current_required),
 ) -> None:
 
-    # OAuth2
-    # current_user_id = get_current_user()
+    current_user_id = current_user.id
 
     try:
         await service_update_recruiting_is_closed_status(
@@ -246,10 +245,10 @@ async def api_update_recruiting_is_closed_status(
 async def api_delete_recruiting(
     post_id: uuid.UUID,
     db: AsyncSession = Depends(get_async_session),
+    current_user: str = Depends(get_current_required),
 ) -> None:
 
-    # OAuth2
-    # current_user_id = get_current_user()
+    current_user_id = current_user.id
 
     try:
         await service_delete_recruiting(

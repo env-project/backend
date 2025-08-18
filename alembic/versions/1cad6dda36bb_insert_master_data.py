@@ -1,21 +1,20 @@
 """Insert master data
 
-Revision ID: 6abb5ade1ce0
-Revises: e508302174d3
-Create Date: 2025-08-18 12:07:21.743225
+Revision ID: 1cad6dda36bb
+Revises: 7efcdc1c4efa
+Create Date: 2025-08-19 07:46:44.661469
 
 """
-
 from datetime import datetime
 from typing import Sequence, Union
 
+from alembic import op
 import sqlalchemy as sa
 
-from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "6abb5ade1ce0"
-down_revision: Union[str, Sequence[str], None] = "e508302174d3"
+revision: str = '1cad6dda36bb'
+down_revision: Union[str, Sequence[str], None] = '7efcdc1c4efa'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

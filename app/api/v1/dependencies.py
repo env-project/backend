@@ -56,11 +56,12 @@ async def get_current_user(
 
 # 토큰이 있으면 사용자 객체,
 # 없거나, 토큰이 유효하지 않으면 None
-optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
+optional_oauth2 = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
+
 
 async def get_current_user_or_none(
     db: AsyncSession = Depends(get_async_session),
-    token: Optional[str] = Depends(optional_oauth2_scheme),
+    token: Optional[str] = Depends(optional_oauth2),
 ) -> Optional[User]:
 
     if not token:
@@ -81,3 +82,28 @@ async def get_current_user_or_none(
     statement = select(User).where(User.id == token_data.sub)
     result = await db.execute(statement)
     return result.scalar_one_or_none()
+
+
+async def get_current_required(
+    db: AsyncSession = Depends(get_async_session),
+    token: str = Depends(reusable_oauth2),
+) -> User:
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
+        token_data = TokenPayload(**payload)
+    except (jwt.JWTError, ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    statement = select(User).where(User.id == token_data.sub)
+    result = await db.execute(statement)
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user

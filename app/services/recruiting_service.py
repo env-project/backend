@@ -119,16 +119,16 @@ async def service_update_recruiting_is_closed_status(
     db: AsyncSession, post_id: uuid.UUID, current_user_id: uuid.UUID, is_closed: bool
 ) -> None:
 
-    # CRUD 레이어를 호출하여 id 여부 확인
+    # CRUD 레이어 호출
     post = await get_recruiting_by_id(db, post_id=post_id)
     if not post:
         raise PostNotFound()
 
-    # 본인이 작성한 구인글인지 여부 확인
+    # 본인이 작성한 구인글 여부 확인
     if current_user_id != post.user_id:
         raise UserNotRecruitingPostOwner()
 
-    # 게시글이 있다면, 마감 상태를 변경하고 저장
+    # 구인글이 있다면, 마감 상태를 변경
     await update_recruiting_is_closed_status(db, post, is_closed)
 
 
@@ -137,16 +137,16 @@ async def service_delete_recruiting(
     db: AsyncSession, post_id: uuid.UUID, current_user_id: uuid.UUID
 ) -> None:
 
-    # CRUD 레이어를 호출하여 id 여부 확인
+    # CRUD 레이어 호출
     post = await get_recruiting_by_id(db, post_id=post_id)
     if not post:
         raise PostNotFound()
 
-    # 본인이 작성한 구인글인지 여부 확인
+    # 본인이 작성한 구인글 여부 확인
     if current_user_id != post.user_id:
         raise UserNotRecruitingPostOwner()
 
-    # 게시글이 있다면, 게시글 삭제
+    # 구인글이 있다면, 삭제
     await delete_recruiting(db, post)
 
 
