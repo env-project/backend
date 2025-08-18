@@ -1,8 +1,8 @@
-"""Create final initial models
+"""Initial migration with all models
 
-Revision ID: f34cdecba708
+Revision ID: 6f75a492df56
 Revises:
-Create Date: 2025-08-16 20:04:44.456958
+Create Date: 2025-08-18 00:15:21.701874
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "f34cdecba708"
+revision: str = "6f75a492df56"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -124,6 +124,7 @@ def upgrade() -> None:
             "nickname", sqlmodel.sql.sqltypes.AutoString(length=20), nullable=False
         ),
         sa.Column("is_active", sa.Boolean(), nullable=False),
+        sa.Column("bookmark_count", sa.Integer(), nullable=False),
         sa.Column("last_login_at", sa.DateTime(), nullable=True),
         sa.Column(
             "login_type",

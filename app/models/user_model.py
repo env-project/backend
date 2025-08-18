@@ -12,6 +12,7 @@ from .common_model import Genre, Position, Region
 
 if TYPE_CHECKING:
     from .bookmark_model import PostBookmark, UserBookmark
+    from .common_model import ExperienceLevel, Position
     from .recruiting_model import Comment, RecruitingPost
 
 
@@ -26,6 +27,9 @@ class ProfilePositionLink(SQLModel, table=True):
     profile_id: uuid.UUID = Field(foreign_key="profiles.id", primary_key=True)
     position_id: uuid.UUID = Field(foreign_key="positions.id", primary_key=True)
     experience_level_id: uuid.UUID = Field(foreign_key="experience_levels.id")
+    profile: "Profile" = Relationship(back_populates="position_links")
+    position: "Position" = Relationship()
+    experience_level: "ExperienceLevel" = Relationship()
 
 
 class ProfileGenreLink(SQLModel, table=True):
@@ -81,9 +85,13 @@ class Profile(BaseModel, table=True):
     bookmarks_count: int = Field(default=0)
 
     user: "User" = Relationship(back_populates="profile")
-    regions: List["Region"] = Relationship(link_model=ProfileRegionLink)
-    positions: List["Position"] = Relationship(link_model=ProfilePositionLink)
-    genres: List["Genre"] = Relationship(link_model=ProfileGenreLink)
+    regions: List["Region"] = Relationship(
+        back_populates="profiles", link_model=ProfileRegionLink
+    )
+    position_links: List["ProfilePositionLink"] = Relationship(back_populates="profile")
+    genres: List["Genre"] = Relationship(
+        back_populates="profiles", link_model=ProfileGenreLink
+    )
 
 
 class SocialAccount(BaseModel, table=True):

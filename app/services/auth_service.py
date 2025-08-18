@@ -5,7 +5,7 @@ from typing import Any, Union
 from jose import jwt
 
 from app.core.config import settings
-from app.models.user import User
+from app.models.user_model import User
 from app.schemas.token import Token
 
 
