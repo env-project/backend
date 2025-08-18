@@ -6,6 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
+from app.api.v1.dependencies import (
+    get_current_user_or_none,
+)
 from app.core.database import get_async_session
 from app.exceptions.exceptions import (
     CommentNotFound,
@@ -20,12 +23,13 @@ from app.schemas.recruiting_schema import (
     RecruitingDetailRequest,
 )
 from app.services.recruiting_service import (
+    service_create_comment,
     service_create_recruiting,
     service_delete_recruiting,
     service_get_recruiting_detail,
+    service_get_recruiting_list,
     service_update_recruiting_detail,
     service_update_recruiting_is_closed_status,
-    service_get_recruiting_list,
 )
 
 # 로거 설정 (별도의 설정 파일 필요)
@@ -37,9 +41,8 @@ recruiting_router = APIRouter(
 
 
 # test 용 user_id
-current_user_id = uuid.UUID("0198a853-9870-7b73-8a54-cfc1e8a7dadf")  # admin
-# current_user_id = uuid.UUID("0198a853-a345-7be0-9da7-a960023adcab")  # test_user
-# current_user_id = uuid.UUID("0198b8b3-56e6-71d7-b766-c25fa414db94")
+# current_user_id = uuid.UUID("0198bd11-dbbf-76d5-be2a-8a039b65d68c")  # root
+current_user_id = uuid.UUID("0198bd39-fd00-7007-b563-8940c6ee00f3")  # user
 
 
 # FR-011: 구인글 목록 조회
@@ -64,18 +67,12 @@ async def api_get_recruiting(
     genre_ids: Optional[List[uuid.UUID]] = Query(None),
     sort_by: SortBy = Query(SortBy.LATEST),
     db: AsyncSession = Depends(get_async_session),
+    current_user: str = Depends(get_current_user_or_none),
 ) -> GetRecruitingCursorResponse:
 
-    # current_user_id = None  # 로그인 안 한 사용자
-
-    # OAuth2
-    # if author == "me" or bookmarks == "me":  # 1차적으로 인증
-    #     current_user_id = get_current_user()
-    # elif has_bearer_auto_error_false():  # 그냥 로그인한 사용자 인증
-    #     current_user_id = get_current_user()
-
-    # Bearer 빼는 로직
-    # from fastapi.security import OAuth2PasswordBearer
+    current_user_id = None
+    if current_user:
+        current_user_id = current_user.id
 
     get_recruiting_cursor_response = await service_get_recruiting_list(
         db,

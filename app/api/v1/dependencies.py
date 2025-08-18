@@ -1,4 +1,6 @@
 # app/api/v1/dependencies.py
+from typing import Optional
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
@@ -50,3 +52,32 @@ async def get_current_user(
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+# 토큰이 있으면 사용자 객체,
+# 없거나, 토큰이 유효하지 않으면 None
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
+
+async def get_current_user_or_none(
+    db: AsyncSession = Depends(get_async_session),
+    token: Optional[str] = Depends(optional_oauth2_scheme),
+) -> Optional[User]:
+
+    if not token:
+        return None
+
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
+        token_data = TokenPayload(**payload)
+    except (jwt.JWTError, ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    statement = select(User).where(User.id == token_data.sub)
+    result = await db.execute(statement)
+    return result.scalar_one_or_none()
