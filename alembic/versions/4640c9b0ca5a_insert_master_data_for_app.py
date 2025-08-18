@@ -35,11 +35,10 @@ def upgrade():
             sa.column("name", sa.String(length=50)),
         ),
         [
-            {"created_at": now, "name": "서울"},
-            {"created_at": now, "name": "서울 서부(홍대, 합정 부근)"},
-            {"created_at": now, "name": "서울 동부(건대 부근)"},
-            {"created_at": now, "name": "서울 남부(사당 부근)"},
-            {"created_at": now, "name": "서울 북부(종로 부근)"},
+            {"created_at": now, "name": "서울 서부"},
+            {"created_at": now, "name": "서울 동부"},
+            {"created_at": now, "name": "서울 남부"},
+            {"created_at": now, "name": "서울 북부"},
             {"created_at": now, "name": "인천"},
             {"created_at": now, "name": "부산"},
             {"created_at": now, "name": "대구"},
@@ -72,6 +71,7 @@ def upgrade():
             {"created_at": now, "name": "베이스"},
             {"created_at": now, "name": "드럼"},
             {"created_at": now, "name": "키보드"},
+            {"created_at": now, "name": "그 외"},
         ],
     )
 
@@ -89,6 +89,7 @@ def upgrade():
             {"created_at": now, "name": "메탈"},
             {"created_at": now, "name": "하드락"},
             {"created_at": now, "name": "재즈"},
+            {"created_at": now, "name": "그 외"},
         ],
     )
 
@@ -101,8 +102,8 @@ def upgrade():
         ),
         [
             {"created_at": now, "name": "취미 1년 이하"},
-            {"created_at": now, "name": "취미 3년 이하"},
-            {"created_at": now, "name": "취미 5년 이하"},
+            {"created_at": now, "name": "취미 1~3년"},
+            {"created_at": now, "name": "취미 3~5년"},
             {"created_at": now, "name": "취미 5년 이상"},
             {"created_at": now, "name": "전공"},
             {"created_at": now, "name": "프로"},
