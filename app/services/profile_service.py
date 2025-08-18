@@ -6,10 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
-from app.models.bookmark import UserBookmark
-from app.models.common import Genre, Position, Region
-from app.models.recruiting import Comment, RecruitingPost
-from app.models.user import Profile, User
+from app.models.bookmark_model import UserBookmark
+from app.models.common_model import Genre, Position, Region
+from app.models.recruiting_model import Comment, RecruitingPost
+from app.models.user_model import Profile, User
 
 
 class ProfileService:
