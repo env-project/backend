@@ -7,4 +7,4 @@ class ImageUploadResponse(BaseModel):
     image_url: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # "orm_mode = True" has been deprecated

@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, List, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base_model import BaseModel
-from .common_model import Genre, Position, Region
 
 if TYPE_CHECKING:
     from .bookmark_model import PostBookmark
+    from .common_model import Genre, Position, Region
     from .user_model import User
 
 
@@ -57,13 +57,25 @@ class RecruitingPost(BaseModel, table=True):
     )
 
     author: "User" = Relationship(back_populates="recruiting_posts")
-    comments: List["Comment"] = Relationship(back_populates="post")
 
-    regions: List["Region"] = Relationship(link_model=RecruitingPostRegionLink)
-    positions: List["Position"] = Relationship(link_model=RecruitingPostPositionLink)
-    genres: List["Genre"] = Relationship(link_model=RecruitingPostGenreLink)
+    comments: List["Comment"] = Relationship(
+        back_populates="post",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+    bookmarks: List["PostBookmark"] = Relationship(
+        back_populates="post",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
 
-    bookmarks: List["PostBookmark"] = Relationship(back_populates="post")
+    regions: List["Region"] = Relationship(
+        link_model=RecruitingPostRegionLink,
+    )
+    positions: List["Position"] = Relationship(
+        link_model=RecruitingPostPositionLink,
+    )
+    genres: List["Genre"] = Relationship(
+        link_model=RecruitingPostGenreLink,
+    )
 
 
 class Comment(BaseModel, table=True):

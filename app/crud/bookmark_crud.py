@@ -1,11 +1,12 @@
 # app/crud/bookmark_crud.py - 수정된 버전
 
 import uuid
+
 from sqlalchemy import delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.models import UserBookmark, PostBookmark
+from app.models import PostBookmark, UserBookmark
 
 
 # FR-022: 타 사용자 북마크 추가(POST)

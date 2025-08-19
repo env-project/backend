@@ -8,11 +8,10 @@ from sqlalchemy.dialects.postgresql import ENUM, JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base_model import BaseModel
-from .common_model import Genre, Position, Region
 
 if TYPE_CHECKING:
     from .bookmark_model import PostBookmark, UserBookmark
-    from .common_model import ExperienceLevel, Position
+    from .common_model import ExperienceLevel, Genre, Position, Region
     from .recruiting_model import Comment, RecruitingPost
 
 
@@ -27,6 +26,7 @@ class ProfilePositionLink(SQLModel, table=True):
     profile_id: uuid.UUID = Field(foreign_key="profiles.id", primary_key=True)
     position_id: uuid.UUID = Field(foreign_key="positions.id", primary_key=True)
     experience_level_id: uuid.UUID = Field(foreign_key="experience_levels.id")
+
     profile: "Profile" = Relationship(back_populates="position_links")
     position: "Position" = Relationship()
     experience_level: "ExperienceLevel" = Relationship()

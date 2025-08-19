@@ -1,14 +1,15 @@
 # app/services/master_data.py
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.common_model import (
-    Region,
-    Position,
-    Genre,
     ExperienceLevel,
+    Genre,
     Orientation,
+    Position,
     RecruitmentType,
+    Region,
 )
 
 

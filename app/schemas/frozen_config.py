@@ -1,4 +1,4 @@
 from pydantic import ConfigDict
 
 # for immutability
-FROZEN_CONFIG = ConfigDict(frozen=True)
+FROZEN_CONFIG = ConfigDict(frozen=True, from_attributes=True)
