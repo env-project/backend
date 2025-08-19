@@ -1,0 +1,32 @@
+# .github/workflows/deploy.yml
+
+name: Deploy to EC2 on Develop Branch
+
+# 작업 실행
+on:
+  push:
+    branches:
+      - develop  # 'develop' 브랜치에 코드가 푸시될 때마다
+
+# 작업들
+jobs:
+  deploy:
+    # 환경
+    runs-on: ubuntu-latest
+
+    # 순서
+    steps:
+      - name: Deploy to EC2 instance
+        # SSH 접속 도구
+        uses: appleboy/ssh-action@master
+        with:
+          # 접속 정보
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_KEY }}
+
+          # 서버에 접속해서 실행할 명령어 목록
+          script: |
+            cd your-repository-name/backend
+            git pull origin develop
+            docker-compose -f docker-compose.prod.yml up --build -d
