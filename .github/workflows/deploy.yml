@@ -27,6 +27,6 @@ jobs:
 
           # 서버에 접속해서 실행할 명령어 목록
           script: |
-            cd your-repository-name/backend
+            cd backend
             git pull origin develop
             docker-compose -f docker-compose.prod.yml up --build -d
