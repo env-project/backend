@@ -1,0 +1,25 @@
+# backend/docker-compose.prod.yml
+services:
+  db:
+    build: ./postgres
+    container_name: band-matching-db-prod
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    env_file:
+      - .env.prod
+    restart: always
+
+  app:
+    build: .
+    container_name: band-matching-app-prod
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  postgres_data_prod:
