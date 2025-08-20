@@ -7,6 +7,7 @@ from app.api.v1.endpoints.user import router as user_router
 from app.api.v1.image_upload_router import image_upload_router
 from app.api.v1.master_data_router import master_data_router
 from app.api.v1.recruiting_router import recruiting_router
+from app.api.v1.comment_router import comment_router
 
 # from app.api.v1.endpoints import user as user_router  # [추가] < 이게 원본이었습니다
 
@@ -28,6 +29,7 @@ app.include_router(user_router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(profile_router, prefix="/api/v1/profiles", tags=["Profiles"])
 app.include_router(recruiting_router, prefix="/api/v1/recruiting", tags=["Recruiting"])
+app.include_router(comment_router, prefix="/api/v1/comments", tags=["Comment"])
 
 # 이미지 업로드
 app.include_router(

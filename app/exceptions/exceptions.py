@@ -1,3 +1,13 @@
+class UserNotFound(Exception):
+    """
+    사용자를 찾을 수 없을 때
+    """
+
+    def __init__(self, message: str = "해당 사용자를 찾을 수 없습니다."):
+        self.message = message
+        super().__init__(self.message)
+
+
 class PostNotFound(Exception):
     """
     구인글을 찾을 수 없을 때
@@ -23,7 +33,7 @@ class NotFirstParentComment(Exception):
     최상위 부모 댓글이 아닐 때
     """
 
-    def __init__(self, message: str = "부모 댓글 id가 잘못되었습니다."):
+    def __init__(self, message: str = "최상위 부모 댓글이 아닙니다."):
         self.message = message
         super().__init__(self.message)
 

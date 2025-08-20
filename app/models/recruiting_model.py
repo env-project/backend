@@ -46,7 +46,7 @@ class RecruitingPost(BaseModel, table=True):
     practice_frequency_time: Optional[str] = Field(max_length=100, default=None)
     other_conditions: Optional[str] = Field(default=None)
     views_count: int = Field(default=0)
-    comments_count: int = Field(default=0)
+    comments_count: int =  Field(default=0)
     bookmarks_count: int = Field(default=0)
     is_closed: bool = Field(default=False)
     orientation_id: Optional[uuid.UUID] = Field(

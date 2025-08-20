@@ -19,7 +19,7 @@ from app.models import (
     Region,
     User,
 )
-from app.schemas.comment_schema import CommentContentRequest
+from app.schemas.comment_schema import CreateCommentRequest
 from app.schemas.enums import SortBy
 from app.schemas.recruiting_schema import (
     GetPositionResponse,
@@ -33,11 +33,20 @@ from app.schemas.recruiting_schema import (
 logger = logging.getLogger(__name__)
 
 
+async def get_user_by_id(db: AsyncSession, author: uuid.UUID) -> RecruitingPost | None:
+    """
+    id로 사용자를 조회합니다.
+    """
+    stmt = select(User).where(User.id == author)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
 async def get_recruiting_by_id(
     db: AsyncSession, post_id: uuid.UUID
 ) -> RecruitingPost | None:
     """
-    post_id로 구인글을 조회합니다.
+    id로 구인글을 조회합니다.
     """
     stmt = (
         select(RecruitingPost)
@@ -61,7 +70,7 @@ async def get_recruiting_list(
     current_user_id: uuid.UUID,
     limit: int,
     cursor: uuid.UUID | None,
-    author: str | None,
+    author: uuid.UUID | None,
     bookmarks: str | None,
     search_query: str | None,
     orientation: uuid.UUID | None,
@@ -75,12 +84,12 @@ async def get_recruiting_list(
     stmt = select(RecruitingPost)
 
     # author
-    if author == "me":
-        stmt = stmt.where(RecruitingPost.user_id == current_user_id)
+    if author:
+        stmt = stmt.where(RecruitingPost.user_id == author)
 
     # bookmarks: query+=1
     bookmarked_post_ids = []
-    if current_user_id:
+    if current_user_id:  # 로그인한 사용자에 대해서
         bookmarked_post_id_subquery = select(PostBookmark.bookmarked_post_id).where(
             PostBookmark.user_id == current_user_id
         )
@@ -166,7 +175,7 @@ async def get_recruiting_list(
     result_rows = (
         result.all()
     )  # .all() returns a list of <class 'sqlalchemy.engine.row.Row'> objects
-    print("db에서 조회된 개수: ", len(result_rows))
+    print("@@@db에서 조회된 개수@@@: ", len(result_rows))
 
     next_cursor = None
     if len(result_rows) == limit + 1:
@@ -244,69 +253,73 @@ async def create_recruiting(
     create_recruiting_request: RecruitingDetailRequest,
 ) -> None:
 
-    async with db.begin():
-        # 데이터를 to dict
-        post_dict = create_recruiting_request.model_dump()
-        post_dict["user_id"] = current_user_id
+    # async with db.begin():
+    # 데이터를 to dict
+    post_dict = create_recruiting_request.model_dump()
+    post_dict["user_id"] = current_user_id
 
-        # dict to ORM 객체
-        new_post = RecruitingPost.model_validate(
-            post_dict
-        )  # new_post = RecruitingPost(**post_dict)
+    # dict to ORM 객체
+    new_post = RecruitingPost.model_validate(
+        post_dict
+    )  # new_post = RecruitingPost(**post_dict)
 
-        db.add(new_post)
-        await db.flush()
-        post_id = new_post.id
+    db.add(new_post)
+    await db.flush()
+    post_id = new_post.id
 
-        # None이 아닐 때만
-        # Region 관계 재설정
-        if create_recruiting_request.region_ids:
-            """Should be re-factored
-            stmt = select(Region).where(Region.id.in_(create_recruiting_request.region_ids))
-            result = await db.execute(stmt)
-            post_region_link = result.scalars().all()
+    # None이 아닐 때만
+    # Region 관계 재설정
+    if create_recruiting_request.region_ids:
+        """Should be re-factored
+        new_post.field eager load issue
 
-            # SQLAlchemy가 중간 연결 테이블을 알아서 처리
-            new_post.regions = post_region_link
-            """
+        stmt = select(Region).where(Region.id.in_(create_recruiting_request.region_ids))
+        result = await db.execute(stmt)
+        post_region_link = result.scalars().all()
 
-            for region_id in create_recruiting_request.region_ids:
-                new_region_link_list = []
-                new_region_link = RecruitingPostRegionLink(
-                    post_id=post_id,
-                    region_id=region_id,
-                )
-                new_region_link_list.append(new_region_link)
-            db.add_all(new_region_link_list)
+        # SQLAlchemy가 중간 연결 테이블을 알아서 처리
+        new_post.regions = post_region_link
+        """
 
-        # Genre 관계 재설정
-        if create_recruiting_request.genre_ids:
-            new_genre_link_list = []
-            for genre_id in create_recruiting_request.genre_ids:
-                new_genre_link = RecruitingPostGenreLink(
-                    post_id=post_id,
-                    genre_id=genre_id,
-                )
-                new_genre_link_list.append(new_genre_link)
-            db.add_all(new_genre_link_list)
+        for region_id in create_recruiting_request.region_ids:
+            new_region_link_list = []
+            new_region_link = RecruitingPostRegionLink(
+                post_id=post_id,
+                region_id=region_id,
+            )
+            new_region_link_list.append(new_region_link)
+        db.add_all(new_region_link_list)
 
-            """ Should be re-factored
-            stmt = select(Genre).where(Genre.id.in_(create_recruiting_request.genre_ids))
-            result = await db.execute(stmt)
-            new_post.genres = result.scalars().all()
-            """
+    # Genre 관계 재설정
+    if create_recruiting_request.genre_ids:
+        new_genre_link_list = []
+        for genre_id in create_recruiting_request.genre_ids:
+            new_genre_link = RecruitingPostGenreLink(
+                post_id=post_id,
+                genre_id=genre_id,
+            )
+            new_genre_link_list.append(new_genre_link)
+        db.add_all(new_genre_link_list)
 
-        # Position 관계 재설정
-        if create_recruiting_request.positions:
-            new_position_link_list = []
-            for position in create_recruiting_request.positions:
-                new_position_link = RecruitingPostPositionLink(
-                    post_id=post_id,
-                    position_id=position.position_id,
-                    desired_experience_level_id=position.experienced_level_id,
-                )
-                new_position_link_list.append(new_position_link)
-            db.add_all(new_position_link_list)
+        """ Should be re-factored
+        stmt = select(Genre).where(Genre.id.in_(create_recruiting_request.genre_ids))
+        result = await db.execute(stmt)
+        new_post.genres = result.scalars().all()
+        """
+
+    # Position 관계 재설정
+    if create_recruiting_request.positions:
+        new_position_link_list = []
+        for position in create_recruiting_request.positions:
+            new_position_link = RecruitingPostPositionLink(
+                post_id=post_id,
+                position_id=position.position_id,
+                desired_experience_level_id=position.experienced_level_id,
+            )
+            new_position_link_list.append(new_position_link)
+        db.add_all(new_position_link_list)
+
+    await db.commit()
 
 
 # FR-012: 구인글 상세 조회
@@ -347,72 +360,83 @@ async def update_recruiting_detail(
     post: RecruitingPost,
     update_recruiting_detail_request: RecruitingDetailRequest,
 ) -> None:
-    # Update fields
-    post.title = update_recruiting_detail_request.title
-    post.content = update_recruiting_detail_request.content
 
-    post.image_url = update_recruiting_detail_request.image_url
-    post.band_name = update_recruiting_detail_request.band_name
-    post.band_composition = update_recruiting_detail_request.band_composition
-    post.activity_time = update_recruiting_detail_request.activity_time
-    post.contact_info = update_recruiting_detail_request.contact_info
-    post.application_method = update_recruiting_detail_request.application_method
-    post.practice_frequency_time = (
-        update_recruiting_detail_request.practice_frequency_time
-    )
-    post.other_conditions = update_recruiting_detail_request.other_conditions
-
-    post.orientation_id = update_recruiting_detail_request.orientation_id
-    post.recruitment_type_id = update_recruiting_detail_request.recruitment_type_id
+    # to_Dict
+    update_data = update_recruiting_detail_request.model_dump(exclude_unset=True)  # PATCH
+    keys = update_data.keys()
+    if "region_ids" in keys:
+        update_data.pop("region_ids")
+        post.regions = []
+    if "genre_ids" in keys:
+        update_data.pop("genre_ids")
+        post.genres = []
+    if "positions" in keys:
+        update_data.pop("positions")
+        post.positions = []
+    # await db.execute(
+    #     delete(RecruitingPostRegionLink).where(
+    #         RecruitingPostRegionLink.post_id == post_id
+    #     )
+    # )
+    # await db.execute(
+    #     delete(RecruitingPostGenreLink).where(
+    #         RecruitingPostGenreLink.post_id == post_id
+    #     )
+    # )
+    #
+    # await db.execute(
+    #     delete(RecruitingPostPositionLink).where(
+    #         RecruitingPostPositionLink.post_id == post_id
+    #     )
+    # )
 
     post_id = post.id
 
-    # None이 아닐 때만 돌아간다.
-    # Region 관계 재설정
-    if update_recruiting_detail_request.region_ids:
-        await db.execute(
-            delete(RecruitingPostRegionLink).where(
-                RecruitingPostRegionLink.post_id == post_id
-            )
-        )
+    # new_regions, new_genres: DB에서 조회한 Region, Genre 객체 리스트
+    # post.regions.extend(new_regions)
+    # post.genres.extend(new_genres)
+    # post.positions.extend(new_positions)
+
+    # 관계 재설정
+    if update_recruiting_detail_request.region_ids is not None:
+        new_region_link_list = []
         for region_id in update_recruiting_detail_request.region_ids:
             new_region_link = RecruitingPostRegionLink(
                 post_id=post_id,
                 region_id=region_id,
             )
-            db.add(new_region_link)
+            new_region_link_list.append(new_region_link)
+        db.add_all(new_region_link_list)
 
-    # Genre 관계 재설정
-    if update_recruiting_detail_request.genre_ids:
-        await db.execute(
-            delete(RecruitingPostGenreLink).where(
-                RecruitingPostGenreLink.post_id == post_id
-            )
-        )
+    if update_recruiting_detail_request.genre_ids is not None:
+        new_genre_link_list = []
         for genre_id in update_recruiting_detail_request.genre_ids:
             new_genre_link = RecruitingPostGenreLink(
                 post_id=post_id,
                 genre_id=genre_id,
             )
-            db.add(new_genre_link)
+            new_genre_link_list.append(new_genre_link)
+        db.add_all(new_genre_link_list)
 
-    # Position 관계 재설정
-    if update_recruiting_detail_request.positions:
-        await db.execute(
-            delete(RecruitingPostPositionLink).where(
-                RecruitingPostPositionLink.post_id == post_id
-            )
-        )
+    if update_recruiting_detail_request.positions is not None:
+        new_position_link_list = []
         for position in update_recruiting_detail_request.positions:
             new_position_link = RecruitingPostPositionLink(
                 post_id=post_id,
                 position_id=position.position_id,
                 desired_experience_level_id=position.experienced_level_id,
             )
-            db.add(new_position_link)
+            new_position_link_list.append(new_position_link)
+        db.add_all(new_position_link_list)
 
+    # setattr(object, name, value): object.name = value
+    for key, value in update_data.items():
+        setattr(post, key, value)
+
+    # SQLAlchemy가 변경사항을 감지
+    # 이전 관계에 대한 DELETE 쿼리와 새 관계에 대한 INSERT 쿼리 execute
     await db.commit()
-    await db.refresh(post)
+    # await db.refresh(post)  # 데이터베이스 트리거
 
 
 # FR-016: 구인글 마감 상태 변경
@@ -421,14 +445,13 @@ async def update_recruiting_is_closed_status(
 ) -> None:
     post.is_closed = is_closed
     await db.commit()
-    await db.refresh(post)
 
 
 # FR-017: 구인글 삭제
 async def delete_recruiting(db: AsyncSession, post: RecruitingPost) -> None:
     # async with db.begin():  # sqlalchemy.exc.InvalidRequestError: A transaction is already begun on this Session.
 
-    # SQLModel/SQLAlchemy: 관련 자동 로드 및 삭제도 해주네
+    # SQLModel/SQLAlchemy: 관련 Link 자동 로드 및 삭제도 해주네
     # for region in post.regions:
     #     await db.delete(region)
 
@@ -442,7 +465,7 @@ async def create_comment(
     db: AsyncSession,
     current_user_id: uuid.UUID,
     post: RecruitingPost,
-    create_comment_request: CommentContentRequest,
+    create_comment_request: CreateCommentRequest,
 ) -> None:
     new_comment = Comment(
         post_id=post.id,
@@ -455,11 +478,8 @@ async def create_comment(
         ),
     )
 
-    # 완전 최상위가 부모가 아니면, 에러
-    if new_comment.parent_comment_id and not await db.get():
-        # 해당 구인글의 comments_count 집계
-        post.comments_count += 1
+    # 해당 구인글의 comments_count 집계
+    post.comments_count += 1
     db.add(new_comment)
+
     await db.commit()
-    await db.refresh(new_comment)
-    await db.refresh(post)

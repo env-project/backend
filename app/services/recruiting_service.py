@@ -13,6 +13,7 @@ from app.crud.recruiting_crud import (
     get_recruiting_by_id,
     get_recruiting_detail,
     get_recruiting_list,
+    get_user_by_id,
     update_recruiting_detail,
     update_recruiting_is_closed_status,
 )
@@ -20,9 +21,10 @@ from app.exceptions.exceptions import (
     CommentNotFound,
     NotFirstParentComment,
     PostNotFound,
+    UserNotFound,
     UserNotRecruitingPostOwner,
 )
-from app.schemas.comment_schema import CommentContentRequest
+from app.schemas.comment_schema import CreateCommentRequest
 from app.schemas.recruiting_schema import (
     GetRecruitingCursorResponse,
     GetRecruitingDetailResponse,
@@ -36,7 +38,7 @@ async def service_get_recruiting_list(
     current_user_id: uuid.UUID,
     limit: int,
     cursor: uuid.UUID | None,
-    author: str | None,
+    author: uuid.UUID | None,
     bookmarks: str | None,
     search_query: str | None,
     orientation: uuid.UUID | None,
@@ -47,7 +49,11 @@ async def service_get_recruiting_list(
     sort_by: "SortBy",
 ) -> GetRecruitingCursorResponse:
 
-    # CRUD 레이어를 호출
+    if author:
+        user = await get_user_by_id(db, author=author)
+        if user is None:
+            raise UserNotFound()
+
     return await get_recruiting_list(
         db,
         current_user_id=current_user_id,
@@ -101,7 +107,6 @@ async def service_update_recruiting_detail(
     update_recruiting_detail_request: RecruitingDetailRequest,
 ) -> None:
 
-    # CRUD 레이어를 호출하여 id 여부 확인
     post = await get_recruiting_by_id(db, post_id=post_id)
     if not post:
         raise PostNotFound()
@@ -158,7 +163,7 @@ async def service_create_comment(
     db: AsyncSession,
     current_user_id: uuid.UUID,
     post_id: uuid.UUID,
-    create_comment_request: CommentContentRequest,
+    create_comment_request: CreateCommentRequest,
 ) -> None:
     post = await get_recruiting_by_id(db, post_id)
     if not post:
@@ -170,7 +175,7 @@ async def service_create_comment(
         )
         if not parent_comment:
             raise CommentNotFound()
-        if parent_comment.parent_comment_id:  # 추가!
+        elif parent_comment.parent_comment_id:  # 최상위 부모 댓글이 아니면,
             raise NotFirstParentComment()
 
     await create_comment(db, current_user_id, post, create_comment_request)

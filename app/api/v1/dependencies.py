@@ -84,7 +84,7 @@ async def get_current_user_or_none(
     return result.scalar_one_or_none()
 
 
-async def get_current_required(
+async def get_current_user_required(
     db: AsyncSession = Depends(get_async_session),
     token: str = Depends(reusable_oauth2),
 ) -> User:
