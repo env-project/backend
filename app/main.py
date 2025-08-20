@@ -1,19 +1,31 @@
 # app/main.py
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.comment_router import comment_router
 from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.profile import router as profile_router
 from app.api.v1.endpoints.user import router as user_router
 from app.api.v1.image_upload_router import image_upload_router
 from app.api.v1.master_data_router import master_data_router
 from app.api.v1.recruiting_router import recruiting_router
-from app.api.v1.comment_router import comment_router
 
 # from app.api.v1.endpoints import user as user_router  # [추가] < 이게 원본이었습니다
 
 app = FastAPI(
     title="Akabi Project API",
     version="0.1.0",
+)
+
+# CORS 설정
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드 허용
+    allow_headers=["*"],  # 모든 HTTP 헤더 허용
 )
 
 
