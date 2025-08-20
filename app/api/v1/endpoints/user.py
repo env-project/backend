@@ -13,7 +13,7 @@ from app.services.user_service import user_service
 router = APIRouter()
 
 
-@router.post("/", response_model=UserRead, status_code=201)
+@router.post("", response_model=UserRead, status_code=201)
 async def create_user(
     user_create: UserCreate, db: AsyncSession = Depends(get_async_session)
 ):
