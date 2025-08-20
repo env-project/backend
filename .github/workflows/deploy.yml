@@ -30,3 +30,4 @@ jobs:
             cd backend
             git pull origin develop
             docker-compose -f docker-compose.prod.yml up --build -d
+            docker image prune -af
