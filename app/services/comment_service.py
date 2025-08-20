@@ -3,13 +3,13 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.comment_crud import (
-    delete_comment_content,
+    delete_comment,
     get_comment_by_id,
     update_comment_content,
 )
 from app.crud.recruiting_crud import get_recruiting_by_id
 from app.exceptions.exceptions import CommentNotFound, PostNotFound, UserNotCommentOwner
-from app.schemas.comment_schema import CommentContentRequest, GetCommentListResponse
+from app.schemas.comment_schema import CreateCommentRequest, GetCommentListResponse
 
 
 # FR-019: 댓글 목록 조회
@@ -39,10 +39,9 @@ async def service_update_comment_content(
     db: AsyncSession,
     current_user_id: uuid.UUID,
     comment_id: uuid.UUID,
-    create_comment_request: CommentContentRequest,
+    update_comment_request: CreateCommentRequest,
 ) -> None:
-    # CRUD 레이어
-    # comment 존재 여부 확인
+
     comment = await get_comment_by_id(db, comment_id)
     if not comment:
         raise CommentNotFound()
@@ -54,7 +53,7 @@ async def service_update_comment_content(
     # 댓글이 존재하고,
     # 본인의 댓글이라면
     # 댓글 수정
-    await update_comment_content(db, comment, create_comment_request)
+    await update_comment_content(db, comment, update_comment_request)
 
 
 # FR-021: 댓글 삭제
@@ -63,8 +62,7 @@ async def service_delete_comment(
     current_user_id: uuid.UUID,
     comment_id: uuid.UUID,
 ) -> None:
-    # CRUD 레이어
-    # comment 존재 여부 확인
+
     comment = await get_comment_by_id(db, comment_id)
     if not comment:
         raise CommentNotFound()
@@ -73,7 +71,10 @@ async def service_delete_comment(
     if current_user_id != comment.user_id:
         raise UserNotCommentOwner()
 
+
+    post = await get_recruiting_by_id(db, comment.post_id)
+
     # 댓글이 존재하고,
     # 본인의 댓글이라면
     # 댓글 삭제
-    await delete_comment_content(db, comment)
+    await delete_comment(db, comment, post)

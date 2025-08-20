@@ -138,8 +138,8 @@ class GetRecruitingDetailResponse(BaseModel):
 
 # FR-014: 구인글 작성, FR-015: 구인글 수정
 class RecruitingDetailRequest(BaseModel):
-    title: str
-    content: str
+    title: str | None = None
+    content: str | None = None
 
     image_url: str | None = None
     band_name: str | None = None

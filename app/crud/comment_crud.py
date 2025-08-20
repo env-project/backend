@@ -1,22 +1,25 @@
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from app.models import (
-    Comment,
+    Comment, RecruitingPost,
 )
-from app.schemas.comment_schema import CommentContentRequest
+from app.schemas.comment_schema import CreateCommentRequest, UpdateCommentRequest
 
 
 async def get_comment_by_id(db: AsyncSession, comment_id: uuid.UUID) -> Comment | None:
     """
-    comment_id로 댓글을 조회합니다.
+    id로 댓글을 조회합니다.
     """
-    stmt = select(Comment).where(Comment.id == comment_id)
+    stmt = (select(Comment).options(
+        selectinload(Comment.children),
+    )
+            .where(Comment.id == comment_id))
     result = await db.execute(stmt)
-
-    return result.scalars().first()
+    return result.scalars().one_or_none()
 
 
 # FR-019: 댓글 목록 조회
@@ -82,19 +85,20 @@ async def get_comment_by_id(db: AsyncSession, comment_id: uuid.UUID) -> Comment 
 async def update_comment_content(
     db: AsyncSession,
     comment: Comment,
-    create_comment_request: CommentContentRequest,
+    update_comment_request: UpdateCommentRequest,
 ) -> None:
-    comment.content = create_comment_request.content
+    comment.content = update_comment_request.content
     await db.commit()
-    await db.refresh(comment)
 
 
 # FR-021: 댓글 삭제
-async def delete_comment_content(
+async def delete_comment(
     db: AsyncSession,
     comment: Comment,
+        post: RecruitingPost,
 ) -> None:
-    # comment_counts -=
+    children = len(comment.children)
+    post.comments_count -= (children+1)
 
-    await db.delete(comment)
+    await db.delete(comment)  # 자식 댓글 delete-orphan
     await db.commit()

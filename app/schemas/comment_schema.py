@@ -8,11 +8,14 @@ from app.schemas.recruiting_schema import (
 )
 
 
-# FR-018: 댓글 작성, FR-020: 댓글 수정
-class CommentContentRequest(BaseModel):
+# FR-018: 댓글 작성
+class CreateCommentRequest(BaseModel):
     content: str
     parent_comment_id: str | None = None
 
+# FR-020: 댓글 수정
+class UpdateCommentRequest(BaseModel):
+    content: str
 
 class GetCommentRecruitingResponse(BaseModel):
     model_config = FROZEN_CONFIG
