@@ -43,7 +43,7 @@ class User(BaseModel, table=True):
 
     email: Optional[str] = Field(max_length=255, unique=True, index=True)
     password_hash: Optional[str] = Field(default=None)
-    nickname: str = Field(max_length=20, unique=True, index=True)
+    nickname: str = Field(max_length=20, index=True)
     is_active: bool = Field(default=True)
     bookmark_count: int = Field(default=0, nullable=False)
     last_login_at: Optional[datetime] = Field(default=None)

@@ -1,5 +1,6 @@
 # app/services/user_service.py
 
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import delete, select
 
@@ -11,8 +12,21 @@ from app.schemas.user import UserCreate
 
 
 class UserService:
+    async def get_user_by_email(self, db: AsyncSession, email: str) -> User | None:
+        """이메일로 사용자를 조회합니다."""
+        statement = select(User).where(User.email == email)
+        result = await db.execute(statement)
+        return result.scalar_one_or_none()
+
     async def create_user(self, db: AsyncSession, user_create: UserCreate) -> User:
         """새로운 사용자를 데이터베이스에 생성"""
+        # 이메일 중복 확인 로직
+        db_user_by_email = await self.get_user_by_email(db, email=user_create.email)
+        if db_user_by_email:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already registered",
+            )
         user_data = user_create.model_dump()
         hashed_password = get_password_hash(user_data.pop("password"))
         user_data["password_hash"] = hashed_password
