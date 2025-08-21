@@ -6,10 +6,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from app.api.v1.dependencies import get_current_user_required
+from app.api.v1.dependencies import get_current_user_or_none, get_current_user_required
 from app.core.database import get_async_session
-from app.exceptions.exceptions import CommentNotFound, UserNotCommentOwner
-from app.schemas.comment_schema import CreateCommentRequest, UpdateCommentRequest
+from app.exceptions.exceptions import (
+    CommentNotFound,
+    PostNotFound,
+    UserNotCommentOwner,
+    UserNotFound,
+)
+from app.schemas.comment_schema import GetCommentCursorResponse, UpdateCommentRequest
 from app.services.comment_service import (
     service_delete_comment,
     service_get_comment_list,
@@ -25,35 +30,61 @@ logger = logging.getLogger(__name__)
 @comment_router.get(
     "",
     description="""
-     
+    댓글 목록 조회(FR-019)
+    
+    성공
+    - HTTP_200_OK: 처리 성공
+    
+    실패
+    - HTTP_401_UNAUTHORIZED: 
+        - 토큰이 만료되었거나
+        - 유효하지 않은 토큰 (형식)일 경우
+        
+    - HTTP_400_BAD_REQUEST:
+        - post_id와 author 쿼리 파라미터가 둘 다 존재하지 않을 때
+    
+    - HTTP_404_NOT_FOUND:
+        - 조회할 구인글이나 사용자가 존재하지 않을 때
+      
+    - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
+        - json type이 잘못되었을 때
+        - 쿼리 파라미터 및 request body field의 지정 데이터타입이 아니거나, 지정된 제약조건에 벗어났을 때
+    
+    - HTTP_500_INTERNAL_SERVER_ERROR: 
+        - 예상치 못한 서버 오류(DB 연결 오류, 타입 에러 등 버그)
     """,
     status_code=status.HTTP_200_OK,
 )
 async def api_get_comment_list(
-    post_id: uuid.UUID = Query(...),  # required
-    author: Optional[str] = Query(default=None),  # me
-    limit: int = Query(default=10, le=10),
+    post_id: Optional[uuid.UUID] = Query(default=None),
+    author: Optional[uuid.UUID] = Query(default=None),
+    limit: int = Query(default=20, le=20),
     cursor: Optional[uuid.UUID] = Query(default=None),
     db: AsyncSession = Depends(get_async_session),
-    # current_user_id: uuid.UUID = Depends(get_current_user),
-) -> None:
-    # OAuth2
-    current_user_id = None
-    if author:
-        current_user_id = uuid.UUID("01989fa6-6cc6-7156-a3e1-d038015598db")  # admin
-        # current_user_id = uuid.UUID("01989c33-5fa0-7925-9a6e-8bc913bbc5e3")  # test_user
+    current_user: str = Depends(get_current_user_or_none),
+) -> GetCommentCursorResponse:
+
+    if post_id is None and author is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="post_id 나 author 값 중 하나는 필수입니다.",
+        )
+
+    current_user_id = None  # 기본적으로 로그인 하지 않은 사용자도 사용 가능
+    if current_user:  # Bearer 있으면,
+        current_user_id = current_user.id
 
     try:
-        await service_get_comment_list(
-            db, current_user_id, post_id, author, limit, cursor
+        get_comment_cursor_response = await service_get_comment_list(
+            db=db,
+            post_id=post_id,
+            current_user_id=current_user_id,
+            author=author,
+            limit=limit,
+            cursor=cursor,
         )
-    except CommentNotFound as e:
+    except (PostNotFound, UserNotFound) as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except UserNotCommentOwner:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="본인이 작성한 글만 수정할 수 있습니다.",
-        )
     except Exception as e:
         logger.error(
             f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True
@@ -63,7 +94,7 @@ async def api_get_comment_list(
             detail="서버에 예상치 못한 오류가 발생했습니다.",
         )
 
-    await db.close()
+    return get_comment_cursor_response
 
 
 # FR-020: 댓글 수정

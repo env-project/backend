@@ -87,8 +87,7 @@ async def service_get_recruiting_detail(
     current_user_id: uuid.UUID,
 ) -> GetRecruitingDetailResponse:
 
-    # CRUD 레이어를 호출하여 id 여부 확인
-    post = await get_recruiting_by_id(db, post_id=post_id)
+    post = await get_recruiting_by_id(db, post_id)
     if not post:
         raise PostNotFound()
 

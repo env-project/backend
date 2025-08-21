@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -13,9 +14,11 @@ class CreateCommentRequest(BaseModel):
     content: str
     parent_comment_id: str | None = None
 
+
 # FR-020: 댓글 수정
 class UpdateCommentRequest(BaseModel):
     content: str
+
 
 class GetCommentRecruitingResponse(BaseModel):
     model_config = FROZEN_CONFIG
@@ -29,12 +32,10 @@ class GetChildCommentResponse(BaseModel):
 
     id: uuid.UUID
     content: str
-    created_at: str
+    created_at: datetime
 
-    is_owner: bool = False
+    is_owner: bool
     author: GetUserProfileResponse
-
-    children: list["GetChildCommentResponse"] | None = None
 
 
 # FR-019: 댓글 목록 조회
@@ -43,11 +44,18 @@ class GetCommentListResponse(BaseModel):
 
     id: uuid.UUID
     content: str
-    created_at: str
+    created_at: datetime
 
     post: GetCommentRecruitingResponse
 
-    is_owner: bool = False
+    is_owner: bool
     author: GetUserProfileResponse
 
     children: list["GetChildCommentResponse"] | None = None
+
+
+class GetCommentCursorResponse(BaseModel):
+    model_config = FROZEN_CONFIG
+
+    next_cursor: uuid.UUID | None = None
+    comments: list[GetCommentListResponse] | None = None
