@@ -10,6 +10,7 @@ from app.api.v1.dependencies import get_current_user_or_none, get_current_user_r
 from app.core.database import get_async_session
 from app.exceptions.exceptions import (
     CommentNotFound,
+    NotFirstParentComment,
     PostNotFound,
     UserNotCommentOwner,
     UserNotFound,
@@ -42,10 +43,12 @@ logger = logging.getLogger(__name__)
         
     - HTTP_400_BAD_REQUEST:
         - post_id와 author 쿼리 파라미터가 둘 다 존재하지 않을 때
-        - cursor 값이 최상위 부모 댓글이 id가 아닐 때
+        - post_id와 author 쿼리 파라미터가 둘 다 존재할 때
+        - post_id 파라미터를 보냈는데
+          cursor 값이 최상위 부모 댓글이 id가 아닐 때
     
     - HTTP_404_NOT_FOUND:
-	    - 조회할 구인글 / 사용자 / cursor의 comment가 존재하지 않을 때
+        - 조회할 구인글 / 사용자 / cursor의 comment가 존재하지 않을 때
       
     - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
         - json type이 잘못되었을 때
@@ -70,6 +73,11 @@ async def api_get_comment_list(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="post_id 나 author 값 중 하나는 필수입니다.",
         )
+    if post_id and author:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="post_id 나 author 값 중 하나만 처리가능합니다.",
+        )
 
     current_user_id = None  # 기본적으로 로그인 하지 않은 사용자도 사용 가능
     if current_user:  # Bearer 있으면,
@@ -86,8 +94,8 @@ async def api_get_comment_list(
         )
     except (PostNotFound, UserNotFound, CommentNotFound) as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    # except NotFirstParentComment as e:
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except NotFirstParentComment as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(
             f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True

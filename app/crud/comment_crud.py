@@ -48,7 +48,9 @@ async def get_comment_list(
     stmt = select(Comment).where(
         or_(Comment.post_id == post_id, Comment.user_id == author)
     )
-    # stmt = stmt.where(Comment.parent_comment_id.is_(None)) # 넣어야하나 말아야하나
+
+    if post_id:
+        stmt = stmt.where(Comment.parent_comment_id.is_(None))
 
     if cursor:
         cursor_subquery = (
