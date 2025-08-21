@@ -10,7 +10,6 @@ from app.api.v1.dependencies import get_current_user_or_none, get_current_user_r
 from app.core.database import get_async_session
 from app.exceptions.exceptions import (
     CommentNotFound,
-    NotFirstParentComment,
     PostNotFound,
     UserNotCommentOwner,
     UserNotFound,
@@ -87,8 +86,8 @@ async def api_get_comment_list(
         )
     except (PostNotFound, UserNotFound, CommentNotFound) as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except NotFirstParentComment as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    # except NotFirstParentComment as e:
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(
             f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True
