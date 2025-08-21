@@ -84,8 +84,6 @@ async def get_comment_list(
     comment_list = []
     if comments:
         for comment in comments:
-            if comment.parent_comment_id:
-                continue
             comment_dict = comment.model_dump()
 
             if comment.children:

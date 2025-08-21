@@ -11,7 +11,6 @@ from app.crud.comment_crud import (
 from app.crud.recruiting_crud import get_recruiting_by_id, get_user_by_id
 from app.exceptions.exceptions import (
     CommentNotFound,
-    NotFirstParentComment,
     PostNotFound,
     UserNotCommentOwner,
     UserNotFound,
@@ -44,8 +43,8 @@ async def service_get_comment_list(
         comment = await get_comment_by_id(db, cursor)
         if not comment:
             raise CommentNotFound()
-        if comment.parent_comment_id:  # 자식댓글로 cursor가 잘못오면
-            raise NotFirstParentComment()
+        # elif comment.parent_comment_id:  # 자식댓글로 cursor가 잘못오면
+        #     raise NotFirstParentComment()
 
     return await get_comment_list(db, post_id, current_user_id, author, limit, cursor)
 
