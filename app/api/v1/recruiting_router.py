@@ -15,6 +15,7 @@ from app.exceptions.exceptions import (
     CommentNotFound,
     NotFirstParentComment,
     PostNotFound,
+    RecruitingCommentNotMatch,
     UserNotFound,
     UserNotRecruitingPostOwner,
 )
@@ -409,6 +410,7 @@ Comments
     
     - HTTP_400_BAD_REQUEST:
         - 최상위 부모 댓글이 아닐 때
+        - 구인글에 맞는 댓글 id가 아닐 때
       
     - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
         - json type이 잘못되었을 때
@@ -437,7 +439,7 @@ async def api_create_comment(
         )
     except (PostNotFound, CommentNotFound) as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except NotFirstParentComment as e:
+    except (NotFirstParentComment, RecruitingCommentNotMatch) as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(

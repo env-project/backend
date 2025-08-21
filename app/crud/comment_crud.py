@@ -7,6 +7,7 @@ from sqlmodel import or_, select, tuple_
 from app.models import (
     Comment,
     RecruitingPost,
+    User,
 )
 from app.schemas.comment_schema import (
     GetChildCommentResponse,
@@ -26,7 +27,8 @@ async def get_comment_by_id(db: AsyncSession, comment_id: uuid.UUID) -> Comment 
         select(Comment)
         .options(
             selectinload(Comment.children),
-        )
+            selectinload(Comment.post),
+        )  # .parent?
         .where(Comment.id == comment_id)
     )
     result = await db.execute(stmt)
@@ -36,22 +38,17 @@ async def get_comment_by_id(db: AsyncSession, comment_id: uuid.UUID) -> Comment 
 # FR-019: 댓글 목록 조회
 async def get_comment_list(
     db: AsyncSession,
-    post: RecruitingPost,
+    post_id: uuid.UUID,
     current_user_id: uuid.UUID,
     author: uuid.UUID,
     limit: int,
     cursor: uuid.UUID,
 ) -> GetCommentCursorResponse:
 
-    stmt = (
-        select(Comment)
-        .options(
-            selectinload(Comment.author),
-            selectinload(Comment.children),
-            selectinload(Comment.children).selectinload(Comment.author),
-        )
-        .where(or_(Comment.post_id == post.id, Comment.user_id == author))
+    stmt = select(Comment).where(
+        or_(Comment.post_id == post_id, Comment.user_id == author)
     )
+    stmt = stmt.where(Comment.parent_comment_id.is_(None))
 
     if cursor:
         cursor_subquery = (
@@ -62,12 +59,28 @@ async def get_comment_list(
             tuple_(Comment.created_at, Comment.id) < tuple_(cursor_subquery, cursor)
         )
 
+    stmt = stmt.options(
+        selectinload(Comment.post),
+        selectinload(Comment.author),
+        selectinload(Comment.author).selectinload(User.profile),
+        selectinload(Comment.children),
+        selectinload(Comment.children).selectinload(Comment.author),
+        selectinload(Comment.children)
+        .selectinload(Comment.author)
+        .selectinload(User.profile),
+    )
+
     final_query = stmt.order_by(Comment.created_at.desc(), Comment.id.desc()).limit(
         limit + 1
     )
 
     result = await db.execute(final_query)
     comments = result.scalars().all()
+    next_cursor = None
+    if len(comments) == limit + 1:
+        next_cursor = comments[-1].id
+        comments = comments[:-1]
+    print("조회된 갯수:", len(comments))
 
     comment_list = []
     if comments:
@@ -95,10 +108,14 @@ async def get_comment_list(
                     )
                     for child in comment.children
                 ]
-            comment_dict["post"] = GetCommentRecruitingResponse.model_validate(post)
+            comment_dict["post"] = GetCommentRecruitingResponse.model_validate(
+                comment.post
+            )
             comment_dict["is_owner"] = comment.user_id == current_user_id
+            print("작성자", comment.author)
+            print(comment.author.profile)
             comment_dict["author"] = GetUserProfileResponse(
-                id=comment.user_id,
+                id=comment.author.id,
                 nickname=comment.author.nickname,
                 image_url=(
                     comment.author.profile.image_url if comment.author.profile else None
@@ -106,12 +123,6 @@ async def get_comment_list(
             )
             get_comment = GetCommentListResponse.model_validate(comment_dict)
             comment_list.append(get_comment)
-
-    next_cursor = None
-    if len(comment_list) == limit + 1:
-        next_cursor = comments[-1].id
-        comment_list = comment_list[:-1]
-    print("조회된 갯수:", len(comment_list))
 
     return GetCommentCursorResponse(
         next_cursor=next_cursor,

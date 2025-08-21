@@ -31,7 +31,6 @@ async def service_get_comment_list(
     cursor: uuid.UUID,
 ) -> GetCommentCursorResponse:
 
-    post = None
     if post_id:
         post = await get_recruiting_by_id(db, post_id)
         if not post:
@@ -41,7 +40,7 @@ async def service_get_comment_list(
         if not user:
             raise UserNotFound()
 
-    return await get_comment_list(db, post, current_user_id, author, limit, cursor)
+    return await get_comment_list(db, post_id, current_user_id, author, limit, cursor)
 
 
 # FR-020: 댓글 수정

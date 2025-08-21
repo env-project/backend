@@ -21,6 +21,7 @@ from app.exceptions.exceptions import (
     CommentNotFound,
     NotFirstParentComment,
     PostNotFound,
+    RecruitingCommentNotMatch,
     UserNotFound,
     UserNotRecruitingPostOwner,
 )
@@ -176,5 +177,7 @@ async def service_create_comment(
             raise CommentNotFound()
         elif parent_comment.parent_comment_id:  # 최상위 부모 댓글이 아니면,
             raise NotFirstParentComment()
+        elif parent_comment.post.id != post_id:
+            raise RecruitingCommentNotMatch()
 
     await create_comment(db, current_user_id, post, create_comment_request)
