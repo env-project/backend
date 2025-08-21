@@ -54,6 +54,10 @@ async def service_get_recruiting_list(
         user = await get_user_by_id(db, author=author)
         if user is None:
             raise UserNotFound()
+    if cursor:
+        recruiting = await get_recruiting_by_id(db, cursor)
+        if recruiting is None:
+            raise PostNotFound()
 
     return await get_recruiting_list(
         db,

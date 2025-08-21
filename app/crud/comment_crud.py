@@ -48,15 +48,14 @@ async def get_comment_list(
     stmt = select(Comment).where(
         or_(Comment.post_id == post_id, Comment.user_id == author)
     )
-    stmt = stmt.where(Comment.parent_comment_id.is_(None))
+    # stmt = stmt.where(Comment.parent_comment_id.is_(None)) # 넣어야하나 말아야하나
 
     if cursor:
         cursor_subquery = (
             select(Comment.created_at).where(Comment.id == cursor).scalar_subquery()
         )
-
         stmt = stmt.where(
-            tuple_(Comment.created_at, Comment.id) < tuple_(cursor_subquery, cursor)
+            tuple_(Comment.created_at, Comment.id) <= tuple_(cursor_subquery, cursor)
         )
 
     stmt = stmt.options(
@@ -112,8 +111,6 @@ async def get_comment_list(
                 comment.post
             )
             comment_dict["is_owner"] = comment.user_id == current_user_id
-            print("작성자", comment.author)
-            print(comment.author.profile)
             comment_dict["author"] = GetUserProfileResponse(
                 id=comment.author.id,
                 nickname=comment.author.nickname,

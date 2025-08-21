@@ -59,6 +59,10 @@ recruiting_router = APIRouter()  # redirect_slashes=False
     - HTTP_400_BAD_REQUEST:
         - bookmarks=me 라고 보냈을 때
           Bearer token이 없는 경우(로그인 안되어 있는 경우)
+          
+    - HTTP_404_NOT_FOUND:
+		- author로 보낸 작성자가 없을 때
+		- cursor로 보낸 구인글이 없을 때
       
     - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
         - json type이 잘못되었을 때
@@ -111,7 +115,7 @@ async def api_get_recruiting(
             genre_ids=genre_ids,
             sort_by=sort_by,
         )
-    except UserNotFound as e:
+    except (UserNotFound, PostNotFound) as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         logger.error(
