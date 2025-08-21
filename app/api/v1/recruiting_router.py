@@ -242,6 +242,28 @@ async def api_get_recruiting_detail(
     "/{post_id}",
     description="""
     구인글 수정(FR-015)
+    
+    성공
+    - HTTP_200_OK: 처리 성공
+    
+    실패
+    - HTTP_401_UNAUTHORIZED: 
+        - Bearer token이 없는 경우(로그인 안되어 있는 경우)
+        - 토큰이 만료되었거나
+        - 유효하지 않은 토큰 형식일 경우
+    
+    - HTTP_403_FORBIDDEN:
+        - 댓글 작성자 본인이 아닐 때
+    
+    - HTTP_404_NOT_FOUND:
+        - 구인글이 존재하지 않을 때
+      
+    - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
+        - json type이 잘못되었을 때
+        - 쿼리 파라미터 및 request body field의 지정 데이터타입이 아니거나, 지정된 제약조건에 벗어났을 때
+    
+    - HTTP_500_INTERNAL_SERVER_ERROR: 
+        - 예상치 못한 서버 오류(DB 연결 오류, 타입 에러 등 버그)
     """,
     status_code=status.HTTP_200_OK,
 )
@@ -414,7 +436,7 @@ Comments
     
     - HTTP_400_BAD_REQUEST:
         - 최상위 부모 댓글이 아닐 때
-        - 구인글에 맞는 댓글 id가 아닐 때
+        - 구인글에 맞는 부모 댓글 id가 아닐 때
       
     - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
         - json type이 잘못되었을 때

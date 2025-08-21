@@ -12,7 +12,7 @@ from app.services.master_data_service import get_all_master_data
 
 # 에러 체크용 logger
 logger = logging.getLogger(__name__)
-master_data_router = APIRouter(prefix="/api/v1/common", tags=["Common"])
+master_data_router = APIRouter()
 
 
 @master_data_router.get("/", response_model=MasterDataResponse)
@@ -27,7 +27,6 @@ async def read_master_data(
             raise HTTPException(
                 status_code=500, detail="Master data is empty or invalid"
             )
-
         return {
             key: [OptionOut(id=item.id, name=item.name) for item in value]
             for key, value in data.items()
