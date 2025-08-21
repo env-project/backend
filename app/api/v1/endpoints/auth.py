@@ -21,19 +21,26 @@ async def login_for_access_token(
     """
     이메일과 비밀번호로 로그인하여 액세스 토큰을 발급
     """
-    # 1. 이메일(username 필드 사용)로 사용자를 찾고
+    # 이메일(username 필드 사용)로 사용자를 찾고
     statement = select(User).where(User.email == form_data.username)
     result = await db.execute(statement)
     print("결과:", result)
     user = result.scalar_one_or_none()
 
-    # 2. 사용자가 없거나 비밀번호가 틀리면 에러를 반환
-    if not user or not verify_password(form_data.password, user.password_hash):
+    # 이메일이 틀리면
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="이메일이 존재하지 않습니다.",
+        )
+
+    # 비밀번호가 틀리면
+    if not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="비밀번호를 확인해주세요.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # 3. 토큰을 생성하여 반환
+    # 토큰을 생성하여 반환
     return auth_service.create_tokens(user=user)
