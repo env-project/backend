@@ -31,6 +31,9 @@ class Position(BaseModel, table=True):
     profiles: List["Profile"] = Relationship(
         back_populates="positions", link_model=ProfilePositionLink
     )
+    recruiting_posts: List["RecruitingPost"] = Relationship(
+        back_populates="genres", link_model=RecruitingPostGenreLink
+    )
 
 
 class Genre(BaseModel, table=True):
