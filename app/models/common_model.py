@@ -1,4 +1,4 @@
-# app/models/common.py
+# app/models/common_model.py
 from typing import TYPE_CHECKING, List
 
 from sqlmodel import Field, Relationship
