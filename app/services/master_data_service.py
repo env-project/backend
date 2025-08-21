@@ -11,6 +11,7 @@ from app.models.common_model import (
     RecruitmentType,
     Region,
 )
+from app.schemas.master_data_schema import OptionOut
 
 
 async def get_all_master_data(db: AsyncSession):
@@ -33,10 +34,12 @@ async def get_all_master_data(db: AsyncSession):
     recruitment_types = recruitment_types_result.scalars().all()
 
     return {
-        "regions": regions,
-        "positions": positions,
-        "genres": genres,
-        "experience_levels": experience_levels,
-        "orientations": orientations,
-        "recruitment_types": recruitment_types,
+        "regions": [OptionOut.model_validate(region) for region in regions],
+        "positions": [OptionOut.model_validate(position) for position in positions],
+        "genres": [OptionOut.model_validate(genre) for genre in genres],
+        "experience_levels": [OptionOut.model_validate(el) for el in experience_levels],
+        "orientations": [
+            OptionOut.model_validate(orientation) for orientation in orientations
+        ],
+        "recruitment_types": [OptionOut.model_validate(rt) for rt in recruitment_types],
     }

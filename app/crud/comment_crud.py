@@ -77,6 +77,7 @@ async def get_comment_list(
 
     result = await db.execute(final_query)
     comments = result.scalars().all()
+
     next_cursor = None
     if len(comments) == limit + 1:
         next_cursor = comments[-1].id

@@ -283,9 +283,8 @@ async def create_recruiting(
     post_dict["user_id"] = current_user_id
 
     # dict to ORM 객체
-    new_post = RecruitingPost.model_validate(
-        post_dict
-    )  # new_post = RecruitingPost(**post_dict)
+    # new_post = RecruitingPost(**post_dict)
+    new_post = RecruitingPost.model_validate(post_dict)
 
     db.add(new_post)
     await db.flush()
