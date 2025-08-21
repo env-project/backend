@@ -1,32 +1,34 @@
 import logging
 import uuid
 
-from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import desc, or_, select, tuple_
+from sqlmodel import and_, desc, or_, select, tuple_
 
 from app.models import (
     Comment,
     ExperienceLevel,
     Genre,
+    Orientation,
     Position,
     PostBookmark,
     RecruitingPost,
     RecruitingPostGenreLink,
     RecruitingPostPositionLink,
     RecruitingPostRegionLink,
+    RecruitmentType,
     Region,
     User,
 )
 from app.schemas.comment_schema import CreateCommentRequest
 from app.schemas.enums import SortBy
 from app.schemas.recruiting_schema import (
+    GetGenreResponse,
+    GetOrientationResponse,
     GetPositionResponse,
     GetRecruitingCursorResponse,
     GetRecruitingDetailResponse,
     GetRecruitingListResponse,
-    GetUserProfileResponse,
     RecruitingDetailRequest,
 )
 
@@ -52,6 +54,7 @@ async def get_recruiting_by_id(
         select(RecruitingPost)
         .options(
             selectinload(RecruitingPost.author),
+            selectinload(RecruitingPost.author).selectinload(User.profile),
             selectinload(RecruitingPost.comments),
             selectinload(RecruitingPost.regions),
             selectinload(RecruitingPost.genres),
@@ -207,6 +210,27 @@ async def get_recruiting_list(
         # TypeError: argument of type 'SelectOfScalar' is not iterable
         post_data["is_bookmarked"] = True if post_id in bookmarked_post_ids else False
 
+        if post_data["orientation_id"]:
+            stmt = select(Orientation).where(
+                Orientation.id == post_data["orientation_id"]
+            )
+            result = await db.execute(stmt)
+            orientation = result.scalars().first()
+            post_data["orientation"] = GetOrientationResponse(
+                id=orientation.id,
+                name=orientation.name,
+            )
+        if post_data["recruitment_type_id"]:
+            stmt = select(RecruitmentType).where(
+                RecruitmentType.id == post_data["recruitment_type_id"]
+            )
+            result = await db.execute(stmt)
+            recruitment_type = result.scalars().first()
+            post_data["recruitment_type"] = GetOrientationResponse(
+                id=recruitment_type.id,
+                name=recruitment_type.name,
+            )
+
         """
         Should be re-factored
         : RecruitingPost, Position, RecruitingPostPositionLink needs to be overhauled
@@ -329,29 +353,86 @@ async def get_recruiting_detail(
     current_user_id: uuid.UUID,
 ) -> GetRecruitingDetailResponse:
 
-    return GetRecruitingDetailResponse(
-        id=post.id,
-        author=GetUserProfileResponse(
-            id=post.id,
-            nickname="dummy",
-        ),
-        title=post.title,
-        content=post.content,
-        is_closed=post.is_closed,
-        created_at=post.created_at,
-        is_owner=False,
-        is_bookmarked=False,
-        views_count=0,
-        comments_count=0,
-        bookmarks_count=0,
-        band_name=post.band_name,
-        band_composition=post.band_composition,
-        activity_time=post.activity_time,
-        contact_info=post.contact_info,
-        application_method=post.application_method,
-        practice_frequency_time=post.practice_frequency_time,
-        other_conditions=post.other_conditions,
-    )
+    post.views_count += 1
+
+    post_dict = post.model_dump()
+
+    post_dict["is_owner"] = False
+    post_dict["is_bookmarked"] = False
+    if current_user_id:
+        post_dict["is_owner"] = True if post.user_id == current_user_id else False
+
+        bookmarked_post_id_subquery = select(PostBookmark.bookmarked_post_id).where(
+            and_(
+                PostBookmark.user_id == current_user_id,
+                PostBookmark.bookmarked_post_id == post.id,
+            )
+        )
+        bookmarked_posts_result = await db.execute(bookmarked_post_id_subquery)
+        bookmarked_post_id = bookmarked_posts_result.scalars().one_or_none()
+        post_dict["is_bookmarked"] = True if bookmarked_post_id else False
+
+    post_dict["author"] = {
+        "id": post.author.id,
+        "nickname": post.author.nickname,
+        "image_url": (post.author.profile.image_url if post.author.profile else None),
+    }
+
+    if post.orientation_id:
+        stmt = select(Orientation).where(Orientation.id == post.orientation_id)
+        result = await db.execute(stmt)
+        orientation = result.scalars().first()
+        post_dict["orientation"] = GetOrientationResponse(
+            id=orientation.id,
+            name=orientation.name,
+        )
+    if post.recruitment_type_id:
+        stmt = select(RecruitmentType).where(
+            RecruitmentType.id == post.recruitment_type_id
+        )
+        result = await db.execute(stmt)
+        recruitment_type = result.scalars().first()
+        post_dict["recruitment_type"] = GetOrientationResponse(
+            id=recruitment_type.id,
+            name=recruitment_type.name,
+        )
+    if post.regions:
+        post_dict["regions"] = [
+            GetGenreResponse.model_validate(region) for region in post.regions
+        ]
+    if post.genres:
+        post_dict["genres"] = [
+            GetGenreResponse.model_validate(genre) for genre in post.genres
+        ]
+
+    if post.positions:
+        positions_stmt = (
+            select(
+                RecruitingPostPositionLink.position_id,
+                Position.name.label("position_name"),
+                RecruitingPostPositionLink.desired_experience_level_id.label(
+                    "experienced_level_id"
+                ),
+                ExperienceLevel.name.label("experienced_level_name"),
+            )
+            .join(Position, RecruitingPostPositionLink.position_id == Position.id)
+            .join(
+                ExperienceLevel,
+                RecruitingPostPositionLink.desired_experience_level_id
+                == ExperienceLevel.id,
+            )
+            .where(RecruitingPostPositionLink.post_id == post.id)
+        )
+
+        # [(UUID('0198a844-cf04-711a-9087-26917d6c6fec'), '키보드', UUID('0198a844-cf07-70e8-960f-35244cea8da4'), '프로'),
+        positions_result = (await db.execute(positions_stmt)).all()
+        positions_response = [
+            GetPositionResponse.model_validate(p) for p in positions_result
+        ]
+        post_dict["positions"] = positions_response
+
+    await db.commit()
+    return GetRecruitingDetailResponse.model_validate(post_dict)
 
 
 # FR-015: 구인글 수정
@@ -362,7 +443,9 @@ async def update_recruiting_detail(
 ) -> None:
 
     # to_Dict
-    update_data = update_recruiting_detail_request.model_dump(exclude_unset=True)  # PATCH
+    update_data = update_recruiting_detail_request.model_dump(
+        exclude_unset=True
+    )  # PATCH
     keys = update_data.keys()
     if "region_ids" in keys:
         update_data.pop("region_ids")

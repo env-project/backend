@@ -13,10 +13,10 @@ from app.api.v1.dependencies import (
 from app.core.database import get_async_session
 from app.exceptions.exceptions import (
     CommentNotFound,
+    NotFirstParentComment,
     PostNotFound,
     UserNotFound,
     UserNotRecruitingPostOwner,
-    NotFirstParentComment,
 )
 from app.schemas.comment_schema import CreateCommentRequest
 from app.schemas.enums import IsBookmarked, SortBy
@@ -57,7 +57,7 @@ recruiting_router = APIRouter()  # redirect_slashes=False
         
     - HTTP_400_BAD_REQUEST:
         - bookmarks=me 라고 보냈을 때
-            - Bearer token이 없는 경우(로그인 안되어 있는 경우)
+          Bearer token이 없는 경우(로그인 안되어 있는 경우)
       
     - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
         - json type이 잘못되었을 때
@@ -139,6 +139,9 @@ async def api_get_recruiting(
         - 토큰이 만료되었거나
         - 유효하지 않은 토큰 (형식)일 경우
         
+    - HTTP_400_NOT_FOUND:
+	    - title과 content를 보내지 않은 경우: 필수 값
+        
     - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
         - json type이 잘못되었을 때
         - 쿼리 파라미터 및 request body field의 지정 데이터타입이 아니거나, 지정된 제약조건에 벗어났을 때
@@ -153,6 +156,15 @@ async def api_create_recruiting(
     db: AsyncSession = Depends(get_async_session),
     current_user: uuid.UUID = Depends(get_current_user_required),
 ) -> None:
+
+    if (
+        create_recruiting_request.title is None
+        or create_recruiting_request.content is None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="title과 content는 필수값입니다.",
+        )
 
     current_user_id = current_user.id
 
@@ -173,6 +185,21 @@ async def api_create_recruiting(
     "/{post_id}",
     description="""
     구인글 상세 조회(FR-012)
+    
+    성공
+    - HTTP_200_OK: 처리 성공
+    
+    실패
+    - HTTP_401_UNAUTHORIZED: 
+        - 토큰이 만료되었거나
+        - 유효하지 않은 토큰 (형식)일 경우
+      
+    - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
+        - json type이 잘못되었을 때
+        - 쿼리 파라미터 및 request body field의 지정 데이터타입이 아니거나, 지정된 제약조건에 벗어났을 때
+    
+    - HTTP_500_INTERNAL_SERVER_ERROR: 
+      - 예상치 못한 서버 오류(DB 연결 오류, 타입 에러 등 버그)
     """,
     response_model=GetRecruitingDetailResponse,
     status_code=status.HTTP_200_OK,
@@ -180,17 +207,16 @@ async def api_create_recruiting(
 async def api_get_recruiting_detail(
     post_id: uuid.UUID,
     db: AsyncSession = Depends(get_async_session),
+    current_user: str = Depends(get_current_user_or_none),
 ) -> GetRecruitingDetailResponse:
 
-    # current_user_id = None  # 로그인 안 한 사용자
-
-    # OAuth2
-    # if has_bearer_auto_error_false():  # 그냥 로그인한 사용자 인증
-    #     current_user_id = get_current_user()
+    current_user_id = None  # 기본적으로 로그인 하지 않은 사용자도 사용 가능
+    if current_user:  # Bearer 있으면,
+        current_user_id = current_user.id
 
     try:
         get_recruiting_detail_response = await service_get_recruiting_detail(
-            db, post_id=post_id, current_user_id=current_user_id
+            db=db, post_id=post_id, current_user_id=current_user_id
         )
     except PostNotFound as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -211,28 +237,6 @@ async def api_get_recruiting_detail(
     "/{post_id}",
     description="""
     구인글 수정(FR-015)
-    
-    성공
-    - HTTP_200_OK: 처리 성공
-    
-    실패
-    - HTTP_401_UNAUTHORIZED: 
-        - Bearer token이 없는 경우(로그인 안되어 있는 경우)
-        - 토큰이 만료되었거나
-        - 유효하지 않은 토큰 형식일 경우
-    
-    - HTTP_403_FORBIDDEN:
-        - 댓글 작성자 본인이 아닐 때
-    
-    - HTTP_404_NOT_FOUND:
-        - 구인글이 존재하지 않을 때
-      
-    - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
-        - json type이 잘못되었을 때
-        - 쿼리 파라미터 및 request body field의 지정 데이터타입이 아니거나, 지정된 제약조건에 벗어났을 때
-    
-    - HTTP_500_INTERNAL_SERVER_ERROR: 
-        - 예상치 못한 서버 오류(DB 연결 오류, 타입 에러 등 버그)
     """,
     status_code=status.HTTP_200_OK,
 )
@@ -264,7 +268,6 @@ async def api_update_recruiting_detail(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="서버에 예상치 못한 오류가 발생했습니다.",
         )
-
 
 
 # FR-016: 구인글 마감 상태 변경

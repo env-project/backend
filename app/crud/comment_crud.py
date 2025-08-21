@@ -2,83 +2,121 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
+from sqlmodel import or_, select, tuple_
 
 from app.models import (
-    Comment, RecruitingPost,
+    Comment,
+    RecruitingPost,
 )
-from app.schemas.comment_schema import CreateCommentRequest, UpdateCommentRequest
+from app.schemas.comment_schema import (
+    GetChildCommentResponse,
+    GetCommentCursorResponse,
+    GetCommentListResponse,
+    GetCommentRecruitingResponse,
+    UpdateCommentRequest,
+)
+from app.schemas.recruiting_schema import GetUserProfileResponse
 
 
 async def get_comment_by_id(db: AsyncSession, comment_id: uuid.UUID) -> Comment | None:
     """
     id로 댓글을 조회합니다.
     """
-    stmt = (select(Comment).options(
-        selectinload(Comment.children),
+    stmt = (
+        select(Comment)
+        .options(
+            selectinload(Comment.children),
+        )
+        .where(Comment.id == comment_id)
     )
-            .where(Comment.id == comment_id))
     result = await db.execute(stmt)
     return result.scalars().one_or_none()
 
 
 # FR-019: 댓글 목록 조회
-# async def get_my_comment_list(
-#     db: AsyncSession,
-#     post: RecruitingPost,
-#     current_user_id: uuid.UUID,
-#     limit: int,
-#     cursor: uuid.UUID,
-# ) -> list[GetCommentListResponse] | None:
-#     # user 정보를 함께 로드하기 위해 selectinload 사용 (N+1 문제 방지)
-#     base_query = select(Comment).where(
-#         and_(
-#             Comment.post_id == post.id,
-#             Comment.user_id == current_user_id
-#         )
-#     )
-#
-#     if cursor:
-#         cursor_subquery = (select(Comment.created_at)
-#                            .where(Comment.id == cursor)
-#                            .scalar_subquery())
-#
-#         # 1순위: created_at으로 정렬
-#         # 2순위: created_at이 같다면 id로 정렬 (순서 보장)
-#         base_query = base_query.where(
-#             tuple_(Comment.created_at, Comment.id) < tuple_(cursor_subquery, cursor)
-#         )
-#
-#     final_query = base_query.order_by(
-#         Comment.created_at.desc(),
-#         Comment.id.desc()
-#     ).limit(limit)
-#
-#     result = await db.execute(final_query)
-#     comments = result.scalars().all()
-#     if not comments:
-#         return None
-#
-#     comment_list = []
-#     for comment in comments:
-#         if comment.children:
-#             children = await get_child_comment_list(db, post, limit)
-#             comment_list.append(
-#                 GetCommentListResponse(
-#                     comment_id=comment.id,
-#                     content=comment.content,
-#                     created_at=comment.created_at
-#                 )
-#             )
-#     return comment_list
+async def get_comment_list(
+    db: AsyncSession,
+    post: RecruitingPost,
+    current_user_id: uuid.UUID,
+    author: uuid.UUID,
+    limit: int,
+    cursor: uuid.UUID,
+) -> GetCommentCursorResponse:
 
+    stmt = (
+        select(Comment)
+        .options(
+            selectinload(Comment.author),
+            selectinload(Comment.children),
+            selectinload(Comment.children).selectinload(Comment.author),
+        )
+        .where(or_(Comment.post_id == post.id, Comment.user_id == author))
+    )
 
-# async def get_comment_list(
-#     db: AsyncSession,
-#     post: RecruitingPost,
-#         limit:int,
-#         cursor:uuid.UUID,
-# ) -> list[GetCommentListResponse] | None:
+    if cursor:
+        cursor_subquery = (
+            select(Comment.created_at).where(Comment.id == cursor).scalar_subquery()
+        )
+
+        stmt = stmt.where(
+            tuple_(Comment.created_at, Comment.id) < tuple_(cursor_subquery, cursor)
+        )
+
+    final_query = stmt.order_by(Comment.created_at.desc(), Comment.id.desc()).limit(
+        limit + 1
+    )
+
+    result = await db.execute(final_query)
+    comments = result.scalars().all()
+
+    comment_list = []
+    if comments:
+        for comment in comments:
+            if comment.parent_comment_id:
+                continue
+            comment_dict = comment.model_dump()
+
+            if comment.children:
+                comment_dict["children"] = [
+                    GetChildCommentResponse(
+                        id=child.id,
+                        content=child.content,
+                        created_at=child.created_at,
+                        is_owner=child.user_id == current_user_id,
+                        author=GetUserProfileResponse(
+                            id=child.user_id,
+                            nickname=child.author.nickname,
+                            image_url=(
+                                child.author.profile.image_url
+                                if child.author.profile
+                                else None
+                            ),
+                        ),
+                    )
+                    for child in comment.children
+                ]
+            comment_dict["post"] = GetCommentRecruitingResponse.model_validate(post)
+            comment_dict["is_owner"] = comment.user_id == current_user_id
+            comment_dict["author"] = GetUserProfileResponse(
+                id=comment.user_id,
+                nickname=comment.author.nickname,
+                image_url=(
+                    comment.author.profile.image_url if comment.author.profile else None
+                ),
+            )
+            get_comment = GetCommentListResponse.model_validate(comment_dict)
+            comment_list.append(get_comment)
+
+    next_cursor = None
+    if len(comment_list) == limit + 1:
+        next_cursor = comments[-1].id
+        comment_list = comment_list[:-1]
+    print("조회된 갯수:", len(comment_list))
+
+    return GetCommentCursorResponse(
+        next_cursor=next_cursor,
+        comments=comment_list,
+    )
 
 
 # FR-020: 댓글 수정
@@ -95,10 +133,10 @@ async def update_comment_content(
 async def delete_comment(
     db: AsyncSession,
     comment: Comment,
-        post: RecruitingPost,
+    post: RecruitingPost,
 ) -> None:
     children = len(comment.children)
-    post.comments_count -= (children+1)
+    post.comments_count -= children + 1
 
     await db.delete(comment)  # 자식 댓글 delete-orphan
     await db.commit()
