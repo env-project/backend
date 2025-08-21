@@ -4,7 +4,11 @@ from typing import TYPE_CHECKING, List
 from sqlmodel import Field, Relationship
 
 from .base_model import BaseModel
-from .recruiting_model import RecruitingPostGenreLink, RecruitingPostRegionLink
+from .recruiting_model import (
+    RecruitingPostGenreLink,
+    RecruitingPostPositionLink,
+    RecruitingPostRegionLink,
+)
 from .user_model import ProfileGenreLink, ProfilePositionLink, ProfileRegionLink
 
 if TYPE_CHECKING:
@@ -32,7 +36,7 @@ class Position(BaseModel, table=True):
         back_populates="positions", link_model=ProfilePositionLink
     )
     recruiting_posts: List["RecruitingPost"] = Relationship(
-        back_populates="genres", link_model=RecruitingPostGenreLink
+        back_populates="positions", link_model=RecruitingPostPositionLink
     )
 
 
