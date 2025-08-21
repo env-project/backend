@@ -11,7 +11,7 @@ from sqlmodel import select
 
 from app.core.config import settings
 from app.core.database import get_async_session
-from app.models.user_model import Profile, User
+from app.models.user_model import Profile, ProfilePositionLink, User
 from app.schemas.token import TokenPayload
 
 # /api/v1/auth/token 경로에서 토큰을 가져오도록 설정
@@ -41,7 +41,12 @@ async def get_current_user(
         select(User)
         .options(
             selectinload(User.profile).selectinload(Profile.regions),
-            selectinload(User.profile).selectinload(Profile.positions),
+            selectinload(User.profile)
+            .selectinload(Profile.position_links)
+            .selectinload(ProfilePositionLink.position),
+            selectinload(User.profile)
+            .selectinload(Profile.position_links)
+            .selectinload(ProfilePositionLink.experience_level),
             selectinload(User.profile).selectinload(Profile.genres),
         )
         .where(User.id == token_data.sub)

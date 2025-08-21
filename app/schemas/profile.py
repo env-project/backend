@@ -47,7 +47,7 @@ class PositionWithExperienceRead(SQLModel):
     experience_level: ExperienceLevelRead
 
     @classmethod
-    def from_link(cls, link: "ProfilePositionLink"):
+    def from_link(cls, link: ProfilePositionLink):
         return cls(position=link.position, experience_level=link.experience_level)
 
 
@@ -57,12 +57,12 @@ class ProfileListRead(SQLModel):
     image_url: str | None
     is_bookmarked: bool
     regions: List[RegionRead]
-    position_links: List[PositionWithExperienceRead]
+    positions: List[PositionWithExperienceRead]
 
 
 class ProfileListResponse(SQLModel):
     next_cursor: str | None
-    profiles: List[PositionWithExperienceRead]
+    profiles: List[ProfileListRead]
 
 
 class ProfileDetailRead(SQLModel):
@@ -71,7 +71,7 @@ class ProfileDetailRead(SQLModel):
     is_public: bool
     is_bookmarked: bool
     regions: List[RegionRead]
-    position_links: List[PositionWithExperienceRead]
+    positions: List[PositionWithExperienceRead]
     genres: List[GenreRead]
     recent_posts: List[PostSummary]
     recent_comments: List[CommentSummary]

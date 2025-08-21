@@ -4,14 +4,8 @@ from typing import TYPE_CHECKING, List
 from sqlmodel import Field, Relationship
 
 from .base_model import BaseModel
-from .recruiting_model import (
-    RecruitingPostGenreLink,
-    RecruitingPostRegionLink,
-)
-from .user_model import (
-    ProfileGenreLink,
-    ProfileRegionLink,
-)
+from .recruiting_model import RecruitingPostGenreLink, RecruitingPostRegionLink
+from .user_model import ProfileGenreLink, ProfilePositionLink, ProfileRegionLink
 
 if TYPE_CHECKING:
     from .recruiting_model import RecruitingPost
@@ -33,12 +27,10 @@ class Region(BaseModel, table=True):
 class Position(BaseModel, table=True):
     __tablename__ = "positions"
     name: str = Field(max_length=50, unique=True, nullable=False)
-    # profiles: List["Profile"] = Relationship(
-    #     back_populates="positions", link_model=ProfilePositionLink
-    # )
-    # recruiting_posts: List["RecruitingPost"] = Relationship(
-    #     back_populates="positions", link_model=RecruitingPostPositionLink
-    # )
+
+    profiles: List["Profile"] = Relationship(
+        back_populates="positions", link_model=ProfilePositionLink
+    )
 
 
 class Genre(BaseModel, table=True):
