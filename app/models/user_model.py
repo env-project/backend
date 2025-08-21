@@ -1,4 +1,4 @@
-# app/models/user.py
+# app/models/user_model.py
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
@@ -89,6 +89,10 @@ class Profile(BaseModel, table=True):
         back_populates="profiles", link_model=ProfileRegionLink
     )
     position_links: List["ProfilePositionLink"] = Relationship(back_populates="profile")
+    positions: List["Position"] = Relationship(
+        back_populates="profiles",
+        link_model=ProfilePositionLink,
+    )
     genres: List["Genre"] = Relationship(
         back_populates="profiles", link_model=ProfileGenreLink
     )
