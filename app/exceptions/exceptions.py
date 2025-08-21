@@ -38,6 +38,16 @@ class NotFirstParentComment(Exception):
         super().__init__(self.message)
 
 
+class RecruitingCommentNotMatch(Exception):
+    """
+    구인글과 댓글이 일치하지 않을 때
+    """
+
+    def __init__(self, message: str = "해당 구인글에 대한 댓글이 아닙니다."):
+        self.message = message
+        super().__init__(self.message)
+
+
 class UserNotRecruitingPostOwner(Exception):
     """
     구인글을 작성한 사용자가 아닐 때
