@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
 from app.models.bookmark_model import UserBookmark
-from app.models.common_model import Genre, Position, Region
+from app.models.common_model import Genre, Position, ProfilePositionLink, Region
 from app.models.recruiting_model import Comment, RecruitingPost
 from app.models.user_model import Profile, User
 
@@ -26,7 +26,12 @@ class ProfileService:
             .options(
                 selectinload(Profile.user),
                 selectinload(Profile.regions),
-                selectinload(Profile.positions).joinedload(Position.experience_level),
+                selectinload(Profile.position_links).selectinload(
+                    ProfilePositionLink.position
+                ),
+                selectinload(Profile.position_links).selectinload(
+                    ProfilePositionLink.experience_level
+                ),
                 selectinload(Profile.genres),
             )
             .where(Profile.user_id == user_id)
@@ -94,10 +99,13 @@ class ProfileService:
             select(Profile)
             .join(Profile.user)
             .options(
-                selectinload(
-                    Profile.regions
-                ),  # 여기 오류나니까, model을 고치거나 code를 고치거나
-                selectinload(Profile.positions).joinedload(Position.experience_level),
+                selectinload(Profile.regions),
+                selectinload(Profile.position_links).selectinload(
+                    ProfilePositionLink.position
+                ),
+                selectinload(Profile.position_links).selectinload(
+                    ProfilePositionLink.experience_level
+                ),
             )
         )
 
@@ -113,9 +121,8 @@ class ProfileService:
         if genre_ids:
             statement = statement.where(Profile.genres.any(Genre.id.in_(genre_ids)))
         if experience_level_ids:
-            # M:N 관계가 아닌 1:N 관계를 통해 필터링해야 함
-            statement = statement.join(Profile.positions).where(
-                Position.experience_level_id.in_(experience_level_ids)
+            statement = statement.join(Profile.position_links).where(
+                ProfilePositionLink.experience_level_id.in_(experience_level_ids)
             )
 
         # 3. 정렬 조건 설정
