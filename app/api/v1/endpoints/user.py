@@ -1,12 +1,13 @@
 # app/api/v1/endpoints/user.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies import get_current_user
 from app.core.database import get_async_session
+from app.core.security import verify_password
 from app.models.user_model import User
 from app.schemas.profile import ProfileDetailRead, ProfileUpdate
-from app.schemas.user import UserCreate, UserRead, UserReadWithProfile
+from app.schemas.user import UserCreate, UserDelete, UserRead, UserReadWithProfile
 from app.services.profile_service import profile_service
 from app.services.user_service import user_service
 
@@ -73,3 +74,28 @@ async def update_my_profile(
         db=db, user=current_user, profile_update=profile_update
     )
     return updated_profile
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user_me(
+    user_delete: UserDelete,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_session),
+):
+    """
+    현재 로그인된 사용자의 계정을 영구적으로 삭제
+    """
+    # 소셜 로그인 사용자는 비밀번호가 없으므로 예외 처리 필요
+    if not current_user.password_hash:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="소셜 로그인 사용자는 비밀번호로 계정을 삭제할 수 없습니다.",
+        )
+
+    if not verify_password(user_delete.password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="잘못된 비밀번호입니다.",
+        )
+
+    await user_service.delete_user(db=db, user=current_user)

@@ -72,7 +72,7 @@ class UserService:
             results = await db.execute(statement)
             profile.genres = results.scalars().all()
 
-        # [수정] 딕셔너리가 아닌, 원래의 Pydantic 객체 리스트를 직접 사용
+        # 딕셔너리가 아닌, 원래의 Pydantic 객체 리스트를 직접 사용
         if profile_update.positions is not None:
             # 기존 연결을 모두 삭제
             delete_statement = delete(ProfilePositionLink).where(
@@ -94,6 +94,14 @@ class UserService:
         await db.commit()
         await db.refresh(profile)
         return profile
+
+    async def delete_user(self, db: AsyncSession, user: User):
+        """사용자 정보를 DB에서 영구적으로 삭제"""
+        profile = user.profile
+        if profile:
+            await db.delete(profile)
+        await db.delete(user)
+        await db.commit()
 
 
 # 서비스 객체 생성
