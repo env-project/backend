@@ -509,10 +509,10 @@ Bookmark
     
     - HTTP_400_BAD_REQUEST:
         - 추가: 북마크가 이미 된 구인글일 때
+        - 제거: 북마크가 된 구인글가 아닐 때
     
     - HTTP_404_NOT_FOUND:
-        - 구인글이 존재하지 않을 때
-        - 제거: 북마크가 된 구인글이 없을 때
+        - 북마크할 구인글이 존재하지 않을 때
       
     - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
         - json type이 잘못되었을 때
@@ -521,7 +521,6 @@ Bookmark
     - HTTP_500_INTERNAL_SERVER_ERROR: 
         - 예상치 못한 서버 오류(DB 연결 오류, 타입 에러 등 버그)
     """,
-    # response_model=BookmarkResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def api_add_recruiting_bookmark(
@@ -535,7 +534,6 @@ async def api_add_recruiting_bookmark(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PostAlreadyBookmarked as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-
     except Exception as e:
         logger.error(
             f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True
@@ -549,7 +547,7 @@ async def api_add_recruiting_bookmark(
 @recruiting_router.delete(
     "/{post_id}/bookmark",
     summary="구인글 북마크 제거(FR-024)",
-    description="""""",
+    description="ref) FR-022",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def api_remove_recruiting_bookmark(
@@ -559,8 +557,10 @@ async def api_remove_recruiting_bookmark(
 ):
     try:
         await bookmark_service.service_remove_post_bookmark(current_user.id, post_id)
-    except (PostNotFound, PostBookmarkNotFound) as e:
+    except PostNotFound as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except PostBookmarkNotFound as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(
             f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True
