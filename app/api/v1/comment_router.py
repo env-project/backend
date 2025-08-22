@@ -30,8 +30,9 @@ logger = logging.getLogger(__name__)
 # FR-019: 댓글 목록 조회
 @comment_router.get(
     "",
+    summary="댓글 목록 조회(FR-019)",
     description="""
-    댓글 목록 조회(FR-019)
+    Responses
     
     성공
     - HTTP_200_OK: 처리 성공
@@ -111,8 +112,9 @@ async def api_get_comment_list(
 # FR-020: 댓글 수정
 @comment_router.patch(
     "/{comment_id}",
+    summary="댓글 수정(FR-020)",
     description="""
-    댓글 수정(FR-020)  
+    Responses
     
     성공
     - HTTP_200_OK: 처리 성공
@@ -171,8 +173,9 @@ async def api_update_comment_content(
 # FR-021: 댓글 삭제
 @comment_router.delete(
     "/{comment_id}",
+    summary="댓글 삭제(FR-021)",
     description="""
-    댓글 삭제(FR-021)
+    Responses
     
     성공
     - HTTP_204_NO_CONTENT: 처리 성공

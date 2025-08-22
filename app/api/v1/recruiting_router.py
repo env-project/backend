@@ -14,11 +14,14 @@ from app.core.database import get_async_session
 from app.exceptions.exceptions import (
     CommentNotFound,
     NotFirstParentComment,
+    PostAlreadyBookmarked,
+    PostBookmarkNotFound,
     PostNotFound,
     RecruitingCommentNotMatch,
     UserNotFound,
     UserNotRecruitingPostOwner,
 )
+from app.models import User
 from app.schemas.comment_schema import CreateCommentRequest
 from app.schemas.enums import IsBookmarked, SortBy
 from app.schemas.recruiting_schema import (
@@ -26,6 +29,7 @@ from app.schemas.recruiting_schema import (
     GetRecruitingDetailResponse,
     RecruitingDetailRequest,
 )
+from app.services.bookmark_service import BookmarkService, get_bookmark_service
 from app.services.recruiting_service import (
     service_create_comment,
     service_create_recruiting,
@@ -45,9 +49,10 @@ recruiting_router = APIRouter()  # redirect_slashes=False
 # FR-011: 구인글 목록 조회
 @recruiting_router.get(
     "",
-    description="""
-    구인글 목록 조회(FR-011)
-    
+    summary="구인글 목록 조회(FR-011)",
+    description="""   
+    Responses
+     
     성공
     - HTTP_200_OK: 처리 성공
     
@@ -132,8 +137,9 @@ async def api_get_recruiting(
 # FR-014: 구인글 작성
 @recruiting_router.post(
     "",
-    description="""
-    구인글 작성(FR-014)
+    summary="구인글 작성(FR-014)",
+    description="""    
+    Responses
     
     성공
     - HTTP_201_CREATED: 생성 성공
@@ -188,8 +194,9 @@ async def api_create_recruiting(
 # FR-012: 구인글 상세 조회
 @recruiting_router.get(
     "/{post_id}",
-    description="""
-    구인글 상세 조회(FR-012)
+    summary="구인글 상세 조회(FR-012)",
+    description="""    
+    Responses
     
     성공
     - HTTP_200_OK: 처리 성공
@@ -240,8 +247,9 @@ async def api_get_recruiting_detail(
 # FR-015: 구인글 수정
 @recruiting_router.patch(
     "/{post_id}",
+    summary="구인글 수정(FR-015)",
     description="""
-    구인글 수정(FR-015)
+    Responses
     
     성공
     - HTTP_200_OK: 처리 성공
@@ -274,13 +282,11 @@ async def api_update_recruiting_detail(
     current_user: str = Depends(get_current_user_required),
 ) -> None:
 
-    current_user_id = current_user.id
-
     try:
         await service_update_recruiting_detail(
             db=db,
             post_id=post_id,
-            current_user_id=current_user_id,
+            current_user_id=current_user.id,
             update_recruiting_detail_request=update_recruiting_detail_request,
         )
     except PostNotFound as e:
@@ -300,8 +306,9 @@ async def api_update_recruiting_detail(
 # FR-016: 구인글 마감 상태 변경
 @recruiting_router.patch(
     "/{post_id}/status",
+    summary="구인글 마감 상태 변경(FR-016)",
     description="""
-    구인글 마감 상태 변경(FR-016)
+    Responses
     
     성공
     - HTTP_200_OK: 처리 성공
@@ -357,8 +364,9 @@ async def api_update_recruiting_is_closed_status(
 # FR-017: 구인글 삭제
 @recruiting_router.delete(
     "/{post_id}",
+    summary="구인글 삭제(FR-017)",
     description="""
-    구인글 삭제(FR-017)
+    Responses
     
     성공
     - HTTP_204_NO_CONTENT: 처리 성공
@@ -411,15 +419,16 @@ async def api_delete_recruiting(
 
 
 """
-Comments
+Comment
 """
 
 
 # FR-018: 댓글 작성
 @recruiting_router.post(
     "/{post_id}/comments",
+    summary="댓글 작성(FR-018)",
     description="""
-    댓글 작성(FR-018)
+    Responses
     
     성공
     - HTTP_201_CREATED: 생성 성공
@@ -467,6 +476,91 @@ async def api_create_comment(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except (NotFirstParentComment, RecruitingCommentNotMatch) as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(
+            f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="서버에 예상치 못한 오류가 발생했습니다.",
+        )
+
+
+"""
+Bookmark
+"""
+
+
+@recruiting_router.post(
+    "/{post_id}/bookmark",
+    summary="구인글 북마크 추가(FR-022)",
+    description="""
+    Responses
+    
+    성공
+    - HTTP_201_CREATED: 추가 성공
+    - HTTP_204_NO_CONTENT: 삭제 성공
+    
+    실패
+    - HTTP_401_UNAUTHORIZED: 
+        - Bearer token이 없는 경우(로그인 안되어 있는 경우)
+        - 토큰이 만료되었거나
+        - 유효하지 않은 토큰 형식일 경우
+    
+    - HTTP_400_BAD_REQUEST:
+        - 추가: 북마크가 이미 된 구인글일 때
+    
+    - HTTP_404_NOT_FOUND:
+        - 구인글이 존재하지 않을 때
+        - 제거: 북마크가 된 구인글이 없을 때
+      
+    - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
+        - json type이 잘못되었을 때
+        - 쿼리 파라미터 지정 데이터타입이 아니거나, 지정된 제약조건에 벗어났을 때
+      
+    - HTTP_500_INTERNAL_SERVER_ERROR: 
+        - 예상치 못한 서버 오류(DB 연결 오류, 타입 에러 등 버그)
+    """,
+    # response_model=BookmarkResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def api_add_recruiting_bookmark(
+    post_id: uuid.UUID,
+    current_user: User = Depends(get_current_user_required),
+    bookmark_service: BookmarkService = Depends(get_bookmark_service),
+) -> None:
+    try:
+        await bookmark_service.service_add_post_bookmark(current_user.id, post_id)
+    except PostNotFound as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except PostAlreadyBookmarked as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    except Exception as e:
+        logger.error(
+            f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="서버에 예상치 못한 오류가 발생했습니다.",
+        )
+
+
+@recruiting_router.delete(
+    "/{post_id}/bookmark",
+    summary="구인글 북마크 제거(FR-024)",
+    description="""""",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def api_remove_recruiting_bookmark(
+    post_id: uuid.UUID,
+    current_user: User = Depends(get_current_user_required),
+    bookmark_service: BookmarkService = Depends(get_bookmark_service),
+):
+    try:
+        await bookmark_service.service_remove_post_bookmark(current_user.id, post_id)
+    except (PostNotFound, PostBookmarkNotFound) as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         logger.error(
             f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True
