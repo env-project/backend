@@ -1,5 +1,5 @@
 # app/api/v1/endpoints/auth.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -44,3 +44,42 @@ async def login_for_access_token(
 
     # 토큰을 생성하여 반환
     return auth_service.create_tokens(user=user)
+
+
+@router.post("/token/refresh", response_model=Token)
+async def refresh_access_token(
+    request: Request, db: AsyncSession = Depends(get_async_session)
+):
+    """
+    HttpOnly 쿠키의 refresh_token을 사용하여 새로운 access_token을 발급
+    """
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token not found in cookies",
+        )
+
+    user = await auth_service.get_user_from_refresh_token(db, token=refresh_token)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+        )
+
+    return auth_service.create_tokens(user=user)
+
+
+@router.delete("/token", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    response: Response, request: Request, db: AsyncSession = Depends(get_async_session)
+):
+    """
+    로그아웃. HttpOnly 쿠키의 refresh_token을 무효화
+    """
+    refresh_token = request.cookies.get("refresh_token")
+    if refresh_token:
+        await auth_service.revoke_refresh_token(db, token=refresh_token)
+
+    # 클라이언트의 쿠키를 삭제하도록 응답 헤더를 설정
+    response.delete_cookie(key="refresh_token", path="/api/v1/auth", httponly=True)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

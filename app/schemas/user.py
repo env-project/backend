@@ -19,5 +19,9 @@ class UserRead(SQLModel):
     nickname: str
 
 
+class UserDelete(SQLModel):
+    password: str
+
+
 class UserReadWithProfile(UserRead):
     profile: Optional[ProfileDetailRead] = None

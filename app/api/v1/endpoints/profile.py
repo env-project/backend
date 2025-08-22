@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.api.v1.dependencies import get_current_user
+from app.api.v1.dependencies import get_current_user_or_none
 from app.core.database import get_async_session
 from app.models.bookmark_model import UserBookmark
 from app.models.user_model import User
@@ -24,8 +24,8 @@ router = APIRouter()
 @router.get("/", response_model=ProfileListResponse)
 async def get_profiles(
     db: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(
-        get_current_user
+    current_user: Optional[User] = Depends(
+        get_current_user_or_none
     ),  # 아 swagger에 test기가 있네요. 주석취소했습니다.
     limit: int = Query(20, gt=0, le=100),
     cursor: Optional[str] = Query(None),
@@ -37,11 +37,11 @@ async def get_profiles(
     sort_by: str = Query("latest", enum=["latest", "bookmarks", "views"]),
     order_by: str = Query("desc", enum=["asc", "desc"]),
 ):
-    current_user = User()
     """타 사용자 프로필 목록을 조회"""
+    current_user_id = current_user.id if current_user else None
     profiles = await profile_service.get_profile_list(
         db=db,
-        current_user_id=current_user.id,
+        current_user_id=current_user_id,
         limit=limit,
         cursor=cursor,
         nickname=nickname,
@@ -55,7 +55,7 @@ async def get_profiles(
 
     # is_bookmarked 로직
     bookmarked_user_ids = set()
-    if profiles:
+    if current_user and profiles:
         profile_user_ids = [p.user_id for p in profiles]
         statement = select(UserBookmark.bookmarked_user_id).where(
             UserBookmark.user_id == current_user.id,
@@ -96,11 +96,12 @@ async def get_profiles(
 async def get_profile(
     user_id: uuid.UUID,
     db: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_or_none),
 ):
     """타 사용자 프로필 상세 정보를 조회"""
+    current_user_id = current_user.id if current_user else None
     profile, is_bookmarked = await profile_service.get_profile_by_user_id(
-        db=db, user_id=user_id, current_user_id=current_user.id
+        db=db, user_id=user_id, current_user_id=current_user_id
     )
 
     if not profile:
@@ -109,7 +110,9 @@ async def get_profile(
         )
 
     # 비공개 프로필인 경우, 본인이 아니면 접근을 거부
-    if not profile.is_public and profile.user_id != current_user.id:
+    if not profile.is_public and (
+        not current_user or profile.user_id != current_user.id
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="This profile is private"
         )
