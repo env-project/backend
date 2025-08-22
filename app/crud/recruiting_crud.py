@@ -480,6 +480,9 @@ async def update_recruiting_detail(
     # post.positions.extend(new_positions)
 
     # 관계 재설정
+    """
+    id 이상한 거 보냈을 때 error handling 추가해야함
+    """
     if update_recruiting_detail_request.region_ids is not None:
         new_region_link_list = []
         for region_id in update_recruiting_detail_request.region_ids:
@@ -488,6 +491,7 @@ async def update_recruiting_detail(
                 region_id=region_id,
             )
             new_region_link_list.append(new_region_link)
+        # post.regions = new_region_link_list
         db.add_all(new_region_link_list)
 
     if update_recruiting_detail_request.genre_ids is not None:

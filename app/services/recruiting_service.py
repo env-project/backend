@@ -111,7 +111,7 @@ async def service_update_recruiting_detail(
     update_recruiting_detail_request: RecruitingDetailRequest,
 ) -> None:
 
-    post = await get_recruiting_by_id(db, post_id=post_id)
+    post = await get_recruiting_by_id(db, post_id)
     if not post:
         raise PostNotFound()
 

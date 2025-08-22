@@ -66,3 +66,29 @@ class UserNotCommentOwner(Exception):
     def __init__(self, message: str = "해당 댓글에 대한 권한이 없습니다."):
         self.message = message
         super().__init__(self.message)
+
+
+### 북마크
+# 이미 북마크가 되어있을 때
+class PostAlreadyBookmarked(Exception):
+    def __init__(self, message: str = "이미 북마크된 구인글입니다."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class PostBookmarkNotFound(Exception):
+    def __init__(self, message: str = "구인글 북마크를 찾을 수 없습니다."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class UserAlreadyBookmarked(Exception):
+    def __init__(self, message: str = "이미 북마크된 회원입니다."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class UserBookmarkNotFound(Exception):
+    def __init__(self, message: str = "사용자 북마크를 찾을 수 없습니다."):
+        self.message = message
+        super().__init__(self.message)

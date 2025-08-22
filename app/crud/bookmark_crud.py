@@ -6,7 +6,7 @@ from sqlalchemy import delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.models import PostBookmark, UserBookmark
+from app.models import PostBookmark, RecruitingPost, UserBookmark
 
 
 # FR-022: 타 사용자 북마크 추가(POST)
@@ -56,24 +56,51 @@ async def update_bookmark_count(
     await db.commit()
 
 
-# FR-022: 구인글 북마크 추가(POST)
-async def create_post_bookmark(
-    db: AsyncSession, user_id: uuid.UUID, bookmarked_post_id: uuid.UUID
-) -> PostBookmark:
-    bookmark = PostBookmark(user_id=user_id, bookmarked_post_id=bookmarked_post_id)
-    db.add(bookmark)
+async def get_post_bookmark_by_id(
+    db: AsyncSession, current_user_id: uuid.UUID, post_id: uuid.UUID
+) -> PostBookmark | None:
+    """
+    id로 postbookmark를 조회합니다.
+    """
+    stmt = select(PostBookmark).where(
+        PostBookmark.user_id == current_user_id,
+        PostBookmark.bookmarked_post_id == post_id,
+    )
+
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+# FR-022: 구인글 북마크 추가
+async def add_post_bookmark(
+    db: AsyncSession, current_user_id: uuid.UUID, post: RecruitingPost
+) -> None:  # PostBookmark:
+    bookmarked_post_id = post.id
+
+    post_bookmark = PostBookmark(
+        user_id=current_user_id, bookmarked_post_id=bookmarked_post_id
+    )
+
+    # postcode_stmt = select(func.count(PostBookmark.id)).where(PostBookmark.bookmarked_post_id == bookmarked_post_id)
+    post.bookmarks_count += 1
+
+    db.add(post_bookmark)
     await db.commit()
-    await db.refresh(bookmark)
-    return bookmark
+    await db.refresh(post_bookmark)
+    # return post_bookmark
 
 
-# FR-024: 구인글 북마크 제거(DELETE)
+# FR-024: 구인글 북마크 제거
 async def delete_post_bookmark(
-    db: AsyncSession, user_id: uuid.UUID, bookmarked_post_id: uuid.UUID
+    db: AsyncSession, current_user_id: uuid.UUID, post: RecruitingPost
 ) -> None:
+    bookmarked_post_id = post.id
+
     stmt = delete(PostBookmark).where(
-        PostBookmark.user_id == user_id,
+        PostBookmark.user_id == current_user_id,
         PostBookmark.bookmarked_post_id == bookmarked_post_id,
     )
+
+    post.bookmarks_count -= 1
     await db.execute(stmt)
     await db.commit()
