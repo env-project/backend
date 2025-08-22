@@ -48,6 +48,7 @@ async def get_current_user(
             .selectinload(Profile.position_links)
             .selectinload(ProfilePositionLink.experience_level),
             selectinload(User.profile).selectinload(Profile.genres),
+            selectinload(User.profile).selectinload(Profile.positions),
         )
         .where(User.id == token_data.sub)
     )
