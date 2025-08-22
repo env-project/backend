@@ -1,15 +1,26 @@
 # app/api/v1/endpoints/user.py
+import logging
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.dependencies import get_current_user
+from app.api.v1.dependencies import get_current_user, get_current_user_required
 from app.core.database import get_async_session
 from app.core.security import verify_password
+from app.exceptions.exceptions import (
+    UserAlreadyBookmarked,
+    UserBookmarkNotFound,
+    UserNotFound,
+)
 from app.models.user_model import User
 from app.schemas.profile import ProfileDetailRead, ProfileUpdate
 from app.schemas.user import UserCreate, UserDelete, UserRead, UserReadWithProfile
+from app.services.bookmark_service import BookmarkService, get_bookmark_service
 from app.services.profile_service import profile_service
 from app.services.user_service import user_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -99,3 +110,88 @@ async def delete_user_me(
         )
 
     await user_service.delete_user(db=db, user=current_user)
+
+
+"""
+Bookmark
+"""
+
+
+@router.post(
+    "/{user_id}/bookmark",
+    summary="타 사용자 북마크 추가(FR-022)",
+    description="""
+    성공
+    - HTTP_201_CREATED: 추가 성공
+    - HTTP_204_NO_CONTENT: 삭제 성공
+    
+    실패
+    - HTTP_401_UNAUTHORIZED: 
+        - Bearer token이 없는 경우(로그인 안되어 있는 경우)
+        - 토큰이 만료되었거나
+        - 유효하지 않은 토큰 형식일 경우
+    
+    - HTTP_400_BAD_REQUEST:
+        - 추가: 북마크가 이미 된 사용자일 때
+        - 제거: 북마크가 된 사용자가 아닐 때
+    
+    - HTTP_404_NOT_FOUND:
+        - 북마크할 사용자가 존재하지 않을 때
+      
+    - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
+        - json type이 잘못되었을 때
+        - 쿼리 파라미터 지정 데이터타입이 아니거나, 지정된 제약조건에 벗어났을 때
+      
+    - HTTP_500_INTERNAL_SERVER_ERROR: 
+        - 예상치 못한 서버 오류(DB 연결 오류, 타입 에러 등 버그)
+    """,
+    status_code=status.HTTP_201_CREATED,
+)
+async def api_add_user_bookmark(
+    user_id: uuid.UUID,
+    current_user: User = Depends(get_current_user_required),
+    bookmark_service: BookmarkService = Depends(get_bookmark_service),
+):
+    try:
+        await bookmark_service.service_add_user_bookmark(
+            current_user_id=current_user.id, target_user_id=user_id
+        )
+    except UserNotFound as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except UserAlreadyBookmarked as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(
+            f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="서버에 예상치 못한 오류가 발생했습니다.",
+        )
+
+
+@router.delete(
+    "/{user_id}/bookmark",
+    summary="타 사용자 북마크 제거(FR-024)",
+    description="ref) FR-022",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def apie_remove_user_bookmark(
+    user_id: uuid.UUID,
+    current_user: User = Depends(get_current_user_required),
+    bookmark_service: BookmarkService = Depends(get_bookmark_service),
+):
+    try:
+        await bookmark_service.service_remove_user_bookmark(current_user.id, user_id)
+    except UserNotFound as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except UserBookmarkNotFound as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(
+            f"Unexpected error in api_change_is_closed_status: {e}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="서버에 예상치 못한 오류가 발생했습니다.",
+        )
