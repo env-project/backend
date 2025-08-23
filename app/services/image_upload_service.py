@@ -21,6 +21,7 @@ async def save_image_file(file) -> str:
         # 파일 저장
         with open(file_path, "wb") as f:
             content = await file.read()
+            print(content)
             f.write(content)
 
         # 업로드된 이미지 URL 생성

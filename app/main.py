@@ -45,7 +45,7 @@ app.include_router(comment_router, prefix="/api/v1/comments", tags=["Comment"])
 
 # 이미지 업로드
 app.include_router(
-    image_upload_router, prefix="/api/v1/common/uploads/images", tags=["Image Upload"]
+    image_upload_router, prefix="/api/v1/uploads/images", tags=["Image Upload"]
 )
 
 # 마스터 데이터
