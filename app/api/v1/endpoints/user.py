@@ -121,6 +121,8 @@ Bookmark
     "/{user_id}/bookmark",
     summary="타 사용자 북마크 추가(FR-022)",
     description="""
+    Responses
+    
     성공
     - HTTP_201_CREATED: 추가 성공
     - HTTP_204_NO_CONTENT: 삭제 성공
