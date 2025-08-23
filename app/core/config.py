@@ -18,12 +18,16 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
-    image_upload_dir: str
-    image_base_url: str
 
     # 이미지 업로드 관련 환경 변수
     IMAGE_UPLOAD_DIR: str = "~/uploads/images"  # ~/uploads/images
     IMAGE_BASE_URL: str = "http://localhost:8000/static/images"  # 상황에 맞게 수정
+
+    # S3
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_REGION: str
+    AWS_S3_BUCKET: str
 
 
 # 설정 객체 생성
