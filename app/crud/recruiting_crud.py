@@ -460,28 +460,28 @@ async def update_recruiting_detail(
     if "region_ids" in keys:
         update_data.pop("region_ids")
         # post.regions = []
+        await db.execute(
+            delete(RecruitingPostRegionLink).where(
+                RecruitingPostRegionLink.post_id == post_id
+            )
+        )
     if "genre_ids" in keys:
         update_data.pop("genre_ids")
         # post.genres = []
+        await db.execute(
+            delete(RecruitingPostGenreLink).where(
+                RecruitingPostGenreLink.post_id == post_id
+            )
+        )
     if "positions" in keys:
         update_data.pop("positions")
         # post.positions = []
+        await db.execute(
+            delete(RecruitingPostPositionLink).where(
+                RecruitingPostPositionLink.post_id == post_id
+            )
+        )
 
-    await db.execute(
-        delete(RecruitingPostRegionLink).where(
-            RecruitingPostRegionLink.post_id == post_id
-        )
-    )
-    await db.execute(
-        delete(RecruitingPostGenreLink).where(
-            RecruitingPostGenreLink.post_id == post_id
-        )
-    )
-    await db.execute(
-        delete(RecruitingPostPositionLink).where(
-            RecruitingPostPositionLink.post_id == post_id
-        )
-    )
 
     # new_regions, new_genres: DB에서 조회한 Region, Genre 객체 리스트
     # post.regions.extend(new_regions)
@@ -492,7 +492,7 @@ async def update_recruiting_detail(
     """
     id 이상한 거 보냈을 때 error handling 추가해야함
     """
-    if update_recruiting_detail_request.region_ids is not None:
+    if update_recruiting_detail_request.region_ids:  # null or [] # is not None:
         new_region_link_list = []
         for region_id in update_recruiting_detail_request.region_ids:
             new_region_link = RecruitingPostRegionLink(
@@ -503,7 +503,7 @@ async def update_recruiting_detail(
         # post.regions = new_region_link_list
         db.add_all(new_region_link_list)
 
-    if update_recruiting_detail_request.genre_ids is not None:
+    if update_recruiting_detail_request.genre_ids:
         new_genre_link_list = []
         for genre_id in update_recruiting_detail_request.genre_ids:
             new_genre_link = RecruitingPostGenreLink(
@@ -513,7 +513,7 @@ async def update_recruiting_detail(
             new_genre_link_list.append(new_genre_link)
         db.add_all(new_genre_link_list)
 
-    if update_recruiting_detail_request.positions is not None:
+    if update_recruiting_detail_request.positions:
         new_position_link_list = []
         for position in update_recruiting_detail_request.positions:
             new_position_link = RecruitingPostPositionLink(
