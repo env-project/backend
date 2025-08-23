@@ -1,6 +1,7 @@
 import logging
 import uuid
 
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, desc, or_, select, tuple_
@@ -159,6 +160,8 @@ async def get_recruiting_list(
                 tuple_(sort_column, RecruitingPost.created_at)
                 <= (cursor_sort_value, cursor_created_at)
             )
+        # next_cursor={} where
+        # offset: 많을 때
 
     # sort_by로 정렬, 같은 값이면 시간순
     stmt = stmt.order_by(desc(sort_column), desc(RecruitingPost.created_at))
@@ -170,6 +173,9 @@ async def get_recruiting_list(
         selectinload(RecruitingPost.regions),
         selectinload(RecruitingPost.genres),
         selectinload(RecruitingPost.positions),
+        # recruitmenttype
+        # subquery vs join
+        #
     )
 
     # stmt query 실행: query+=1
@@ -188,6 +194,10 @@ async def get_recruiting_list(
     # 직렬화
     posts_response = []
 
+    """
+    grouping
+    id_list = [post_data["id"] for post_data in result_rows]
+    """
     # post_obj: (RecruitingPost(),) <class 'sqlalchemy.engine.row.Row'>
     for post_obj in result_rows:
         # Row 객체를 딕셔너리로 변환
@@ -440,6 +450,7 @@ async def update_recruiting_detail(
     post: RecruitingPost,
     update_recruiting_detail_request: RecruitingDetailRequest,
 ) -> None:
+    post_id = post.id
 
     # to_Dict
     update_data = update_recruiting_detail_request.model_dump(
@@ -448,31 +459,29 @@ async def update_recruiting_detail(
     keys = update_data.keys()
     if "region_ids" in keys:
         update_data.pop("region_ids")
-        post.regions = []
+        # post.regions = []
     if "genre_ids" in keys:
         update_data.pop("genre_ids")
-        post.genres = []
+        # post.genres = []
     if "positions" in keys:
         update_data.pop("positions")
-        post.positions = []
-    # await db.execute(
-    #     delete(RecruitingPostRegionLink).where(
-    #         RecruitingPostRegionLink.post_id == post_id
-    #     )
-    # )
-    # await db.execute(
-    #     delete(RecruitingPostGenreLink).where(
-    #         RecruitingPostGenreLink.post_id == post_id
-    #     )
-    # )
-    #
-    # await db.execute(
-    #     delete(RecruitingPostPositionLink).where(
-    #         RecruitingPostPositionLink.post_id == post_id
-    #     )
-    # )
+        # post.positions = []
 
-    post_id = post.id
+    await db.execute(
+        delete(RecruitingPostRegionLink).where(
+            RecruitingPostRegionLink.post_id == post_id
+        )
+    )
+    await db.execute(
+        delete(RecruitingPostGenreLink).where(
+            RecruitingPostGenreLink.post_id == post_id
+        )
+    )
+    await db.execute(
+        delete(RecruitingPostPositionLink).where(
+            RecruitingPostPositionLink.post_id == post_id
+        )
+    )
 
     # new_regions, new_genres: DB에서 조회한 Region, Genre 객체 리스트
     # post.regions.extend(new_regions)
