@@ -29,6 +29,6 @@ jobs:
           script: |
             cd backend
             git pull origin develop
-            docker-compose -f docker-compose.prod.yml up --build -d
             docker-compose exec band-matching-app-prod poetry run alembic upgrade head
+            docker-compose -f docker-compose.prod.yml up --build -d
             docker image prune -af

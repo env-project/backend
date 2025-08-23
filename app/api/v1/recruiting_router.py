@@ -60,8 +60,6 @@ recruiting_router = APIRouter()  # redirect_slashes=False
     - HTTP_401_UNAUTHORIZED: 
         - 토큰이 만료되었거나
         - 유효하지 않은 토큰 (형식)일 경우
-        
-    - HTTP_400_BAD_REQUEST:
         - bookmarks=me 라고 보냈을 때
           Bearer token이 없는 경우(로그인 안되어 있는 경우)
           
@@ -100,7 +98,7 @@ async def api_get_recruiting(
         current_user_id = current_user.id
     elif bookmarks:  # 로그인 안되어 있을 때
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str("로그인이 필요한 항목입니다."),
         )
 

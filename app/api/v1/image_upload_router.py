@@ -8,7 +8,7 @@ from app.services.image_upload_service import save_image_file
 image_upload_router = APIRouter()
 
 
-@image_upload_router.post("/", response_model=ImageUploadResponse, status_code=201)
+@image_upload_router.post("", response_model=ImageUploadResponse, status_code=201)
 async def upload_image(file: UploadFile = File(...)):
     try:
         image_url = await save_image_file(file)
