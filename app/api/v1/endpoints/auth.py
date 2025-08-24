@@ -50,8 +50,8 @@ async def login_for_access_token(
         httponly=True,
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,  # 초 단위
         path="/",
-        secure=False,  # HTTPS 환경에서는 True
-        samesite="lax",
+        secure=True,
+        samesite="None",
     )
 
     return tokens
@@ -89,8 +89,8 @@ async def refresh_access_token(
         httponly=True,
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
         path="/",
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="None",
     )
 
     return tokens
