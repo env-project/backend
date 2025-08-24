@@ -53,11 +53,13 @@ class PositionWithExperienceRead(SQLModel):
 
 class ProfileListRead(SQLModel):
     user_id: uuid.UUID
+    email: str
     nickname: str
     image_url: str | None
     is_bookmarked: bool
     regions: List[RegionRead]
     positions: List[PositionWithExperienceRead]
+    genres: List[GenreRead]
 
 
 class ProfileListResponse(SQLModel):
@@ -66,6 +68,7 @@ class ProfileListResponse(SQLModel):
 
 
 class ProfileDetailRead(SQLModel):
+    email: str
     nickname: str
     image_url: str | None
     is_public: bool
