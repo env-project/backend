@@ -21,7 +21,7 @@ from app.services.profile_service import profile_service
 router = APIRouter()
 
 
-@router.get("/", response_model=ProfileListResponse)
+@router.get("", response_model=ProfileListResponse)
 async def get_profiles(
     db: AsyncSession = Depends(get_async_session),
     current_user: Optional[User] = Depends(
