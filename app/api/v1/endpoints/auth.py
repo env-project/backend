@@ -49,7 +49,7 @@ async def login_for_access_token(
         value=tokens.refresh_token,
         httponly=True,
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,  # 초 단위
-        path="/api/v1/auth",
+        path="/",
         secure=False,  # HTTPS 환경에서는 True
         samesite="lax",
     )
@@ -88,7 +88,7 @@ async def refresh_access_token(
         value=tokens.refresh_token,
         httponly=True,
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/api/v1/auth",
+        path="/",
         secure=False,
         samesite="lax",
     )
@@ -108,5 +108,5 @@ async def logout(
         await auth_service.revoke_refresh_token(db, token=refresh_token)
 
     # 클라이언트 쿠키 삭제
-    response.delete_cookie(key="refresh_token", path="/api/v1/auth", httponly=True)
+    response.delete_cookie(key="refresh_token", path="/", httponly=True)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
