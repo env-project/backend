@@ -17,7 +17,7 @@ app = FastAPI(
 
 # CORS 설정
 origins = [
-    "http://localhost:5173",  # 개발 환경 (Vite)
+    "https://localhost:5173",  # 개발 환경 (Vite)
     "https://frontend-ruddy-phi-24.vercel.app",  # 배포 환경 (Vercel)
 ]
 
