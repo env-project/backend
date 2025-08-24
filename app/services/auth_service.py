@@ -1,4 +1,5 @@
 # app/services/auth_service.py
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 
@@ -13,21 +14,42 @@ from app.schemas.token import Token, TokenPayload
 
 
 class AuthService:
-    def create_access_token(
-        self, subject: Union[str, Any], expires_delta: timedelta | None = None
-    ) -> str:
-        if expires_delta:
-            expire = datetime.now(timezone.utc) + expires_delta
-        else:
-            expire = datetime.now(timezone.utc) + timedelta(
-                minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-            )
-
+    def create_access_token(self, subject: Union[str, Any]) -> str:
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
         to_encode = {"exp": expire, "sub": str(subject)}
-        encoded_jwt = jwt.encode(
+        return jwt.encode(
             to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
         )
-        return encoded_jwt
+
+    async def create_tokens_and_save_refresh_token(
+        self, db: AsyncSession, user: User
+    ) -> Token:
+        """
+        새로운 Access Token과 Refresh Token을 생성,
+        Refresh Token 정보를 DB에 저장
+        """
+        # 1. Access Token 생성 (sub = user.id)
+        access_token = self.create_access_token(subject=user.id)
+
+        # 2. Refresh Token을 위한 고유 ID(jti) 생성
+        jti = uuid.uuid4()
+
+        # 3. Refresh Token 생성 (sub = jti)
+        refresh_token_str = self.create_refresh_token(subject=jti)
+
+        # 4. DB에 저장할 RefreshToken 객체 생성
+        db_refresh_token = RefreshToken(
+            jti=jti,
+            user_id=user.id,
+            expired_at=datetime.now(timezone.utc)
+            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+        )
+        db.add(db_refresh_token)
+        await db.commit()
+
+        return Token(access_token=access_token, refresh_token=refresh_token_str)
 
     def create_refresh_token(
         self, subject: Union[str, Any], expires_delta: timedelta | None = None
