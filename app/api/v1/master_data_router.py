@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 master_data_router = APIRouter()
 
 
-@master_data_router.get("/", response_model=MasterDataResponse)
+@master_data_router.get("", response_model=MasterDataResponse)
 async def read_master_data(
     db: AsyncSession = Depends(get_async_session),
 ):  # 비동기 방식
