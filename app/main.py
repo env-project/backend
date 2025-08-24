@@ -10,10 +10,7 @@ from app.api.v1.image_upload_router import image_upload_router
 from app.api.v1.master_data_router import master_data_router
 from app.api.v1.recruiting_router import recruiting_router
 
-app = FastAPI(
-    title="Akabi Project API",
-    version="0.1.0",
-)
+app = FastAPI(title="Akabi Project API", version="0.1.0", redirect_slashes=False)
 
 # CORS 설정
 origins = [
