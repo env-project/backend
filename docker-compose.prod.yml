@@ -3,33 +3,50 @@ services:
   db:
     build: ./postgres
     container_name: band-matching-db-prod
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
-    env_file:
-      - .env.prod
-    networks:
-      - shared-net
+    env_file: .env.prod
     restart: always
+    networks:
+      - app-net
 
   app:
     build: .
     container_name: band-matching-app-prod
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env.prod
+    env_file: .env.prod
     depends_on:
       - db
-    networks:
-      - shared-net
     restart: always
+    networks:
+      - app-net
+
+  nginx:
+    image: nginx:latest
+    container_name: band-matching-nginx-prod
+    ports:
+      - "80:80"   # HTTP 포트
+      - "443:443" # HTTPS 포트
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - app
+    restart: always
+    networks:
+      - app-net
+
+  certbot:
+    image: certbot/certbot
+    container_name: band-matching-certbot-prod
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
 
 volumes:
   postgres_data_prod:
 
 networks:
-  shared-net:
+  app-net:
     driver: bridge
