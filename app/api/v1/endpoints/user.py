@@ -52,6 +52,7 @@ async def read_users_me(
         )
 
         profile_data = ProfileDetailRead(
+            email=current_user.email,
             nickname=current_user.nickname,
             image_url=current_user.profile.image_url,
             is_public=current_user.profile.is_public,
@@ -122,29 +123,29 @@ Bookmark
     summary="타 사용자 북마크 추가(FR-022)",
     description="""
     Responses
-    
+
     성공
     - HTTP_201_CREATED: 추가 성공
     - HTTP_204_NO_CONTENT: 삭제 성공
-    
+
     실패
-    - HTTP_401_UNAUTHORIZED: 
+    - HTTP_401_UNAUTHORIZED:
         - Bearer token이 없는 경우(로그인 안되어 있는 경우)
         - 토큰이 만료되었거나
         - 유효하지 않은 토큰 형식일 경우
-    
+
     - HTTP_400_BAD_REQUEST:
         - 추가: 북마크가 이미 된 사용자일 때
         - 제거: 북마크가 된 사용자가 아닐 때
-    
+
     - HTTP_404_NOT_FOUND:
         - 북마크할 사용자가 존재하지 않을 때
-      
-    - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답): 
+
+    - HTTP_422_UNPROCESSABLE_ENTITY(FastAPI server에서 자동 응답):
         - json type이 잘못되었을 때
         - 쿼리 파라미터 지정 데이터타입이 아니거나, 지정된 제약조건에 벗어났을 때
-      
-    - HTTP_500_INTERNAL_SERVER_ERROR: 
+
+    - HTTP_500_INTERNAL_SERVER_ERROR:
         - 예상치 못한 서버 오류(DB 연결 오류, 타입 에러 등 버그)
     """,
     status_code=status.HTTP_201_CREATED,
