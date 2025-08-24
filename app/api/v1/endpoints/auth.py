@@ -42,8 +42,8 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # 토큰을 생성하여 반환
-    return auth_service.create_tokens(user=user)
+    # 토큰을 생성하고 DB에 저장하는 서비스 함수를 호출
+    return await auth_service.create_tokens_and_save_refresh_token(db=db, user=user)
 
 
 @router.post("/token/refresh", response_model=Token)
@@ -66,7 +66,7 @@ async def refresh_access_token(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
         )
 
-    return auth_service.create_tokens(user=user)
+    return await auth_service.create_tokens_and_save_refresh_token(db=db, user=user)
 
 
 @router.delete("/token", status_code=status.HTTP_204_NO_CONTENT)
