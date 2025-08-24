@@ -81,11 +81,13 @@ async def get_profiles(
         response_profiles.append(
             ProfileListRead(
                 user_id=p.user_id,
+                email=p.user.email,
                 nickname=p.user.nickname,
                 image_url=p.image_url,
                 is_bookmarked=p.user_id in bookmarked_user_ids,
                 regions=p.regions,
                 positions=positions_data,
+                genres=p.genres,
             )
         )
 
@@ -123,6 +125,7 @@ async def get_profile(
 
     # 최종 응답 데이터를 스키마에 맞게 조합
     return ProfileDetailRead(
+        email=profile.user.email,
         nickname=profile.user.nickname,
         image_url=profile.image_url,
         is_public=profile.is_public,

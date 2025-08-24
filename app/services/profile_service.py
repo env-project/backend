@@ -99,6 +99,7 @@ class ProfileService:
             select(Profile)
             .join(Profile.user)
             .options(
+                selectinload(Profile.user),
                 selectinload(Profile.regions),
                 selectinload(Profile.position_links).selectinload(
                     ProfilePositionLink.position
@@ -106,6 +107,7 @@ class ProfileService:
                 selectinload(Profile.position_links).selectinload(
                     ProfilePositionLink.experience_level
                 ),
+                selectinload(Profile.genres),
             )
         )
 
