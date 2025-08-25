@@ -24,9 +24,7 @@ router = APIRouter()
 @router.get("", response_model=ProfileListResponse)
 async def get_profiles(
     db: AsyncSession = Depends(get_async_session),
-    current_user: Optional[User] = Depends(
-        get_current_user_or_none
-    ),  # 아 swagger에 test기가 있네요. 주석취소했습니다.
+    current_user: Optional[User] = Depends(get_current_user_or_none),
     limit: int = Query(20, gt=0, le=100),
     cursor: Optional[str] = Query(None),
     nickname: Optional[str] = Query(None),
@@ -77,19 +75,20 @@ async def get_profiles(
     response_profiles = []
     for p in profiles:
         positions_data = [
-            PositionWithExperienceRead.from_link(link) for link in p.position_links
+            PositionWithExperienceRead.from_link(link)
+            for link in getattr(p, "position_links", []) or []
         ]
 
         response_profiles.append(
             ProfileListRead(
                 user_id=p.user_id,
-                email=p.user.email,
-                nickname=p.user.nickname,
-                image_url=p.image_url,
+                email=getattr(p.user, "email", None),
+                nickname=getattr(p.user, "nickname", None),
+                image_url=getattr(p, "image_url", None),
                 is_bookmarked=p.user_id in bookmarked_user_ids,
-                regions=p.regions,
-                positions=positions_data,
-                genres=p.genres,
+                regions=getattr(p, "regions", []) or [],
+                positions=positions_data or [],
+                genres=getattr(p, "genres", []) or [],
             )
         )
 
@@ -122,16 +121,18 @@ async def get_profile(
         )
 
     # 최종 응답 데이터를 스키마에 맞게 조합
+    positions_data = [
+        PositionWithExperienceRead.from_link(link)
+        for link in getattr(profile, "position_links", []) or []
+    ]
+
     return ProfileDetailRead(
-        email=profile.user.email,
-        nickname=profile.user.nickname,
-        image_url=profile.image_url,
-        is_public=profile.is_public,
-        is_bookmarked=is_bookmarked,
-        regions=profile.regions,
-        positions=[
-            PositionWithExperienceRead.from_link(link)
-            for link in profile.position_links
-        ],
-        genres=profile.genres,
+        email=getattr(profile.user, "email", None),
+        nickname=getattr(profile.user, "nickname", None),
+        image_url=getattr(profile, "image_url", None),
+        is_public=bool(getattr(profile, "is_public", True)),
+        is_bookmarked=bool(is_bookmarked),
+        regions=getattr(profile, "regions", []) or [],
+        positions=positions_data or [],
+        genres=getattr(profile, "genres", []) or [],
     )

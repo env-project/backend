@@ -40,27 +40,27 @@ class PositionWithExperienceRead(SQLModel):
 
 
 class ProfileListRead(SQLModel):
-    user_id: uuid.UUID
-    email: str
-    nickname: str
-    image_url: str | None
-    is_bookmarked: bool
-    regions: List[RegionRead]
-    positions: List[PositionWithExperienceRead]
-    genres: List[GenreRead]
+    user_id: Optional[uuid.UUID] = None
+    email: Optional[str] = None
+    nickname: Optional[str] = None
+    image_url: Optional[str] = None
+    is_bookmarked: Optional[bool] = None
+    regions: Optional[List[RegionRead]] = []
+    positions: Optional[List[PositionWithExperienceRead]] = []
+    genres: Optional[List[GenreRead]] = []
 
 
 class ProfileListResponse(SQLModel):
-    next_cursor: str | None
-    profiles: List[ProfileListRead]
+    next_cursor: str | None = None  # 다음 페이지가 없으면 None
+    profiles: list[ProfileListRead] = []
 
 
 class ProfileDetailRead(SQLModel):
-    email: str
-    nickname: str
+    email: Optional[str] = None
+    nickname: Optional[str] = None
     image_url: Optional[str] = None
-    is_public: bool
-    is_bookmarked: bool
-    regions: List[RegionRead]
+    is_public: Optional[bool] = None
+    is_bookmarked: Optional[bool] = None
+    regions: Optional[List[RegionRead]] = []
     positions: Optional[List[PositionWithExperienceRead]] = []
-    genres: List[GenreRead]
+    genres: Optional[List[GenreRead]] = []

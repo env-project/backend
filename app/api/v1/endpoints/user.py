@@ -76,7 +76,22 @@ async def update_my_profile(
     updated_profile = await user_service.update_profile(
         db=db, user=current_user, profile_update=profile_update
     )
-    return updated_profile
+
+    # Optional 필드 안전하게 반환
+    return ProfileDetailRead(
+        email=current_user.email or None,
+        nickname=current_user.nickname or None,
+        image_url=updated_profile.image_url or None,
+        is_public=(
+            updated_profile.is_public
+            if updated_profile.is_public is not None
+            else False
+        ),
+        is_bookmarked=False,
+        regions=updated_profile.regions or [],
+        positions=updated_profile.positions or [],
+        genres=updated_profile.genres or [],
+    )
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
