@@ -2,6 +2,7 @@
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlmodel import delete, select
 
 from app.core.security import get_password_hash
@@ -93,7 +94,20 @@ class UserService:
 
         await db.commit()
         await db.refresh(profile)
-        return profile
+
+        statement = (
+            select(Profile)
+            .options(
+                selectinload(Profile.regions),
+                selectinload(Profile.positions),
+                selectinload(Profile.genres),
+            )
+            .where(Profile.id == profile.id)
+        )
+        result = await db.execute(statement)
+        profile_with_relations = result.scalar_one()
+
+        return profile_with_relations
 
     async def delete_user(self, db: AsyncSession, user: User):
         """사용자 정보를 DB에서 영구적으로 삭제"""
