@@ -14,7 +14,11 @@ from app.exceptions.exceptions import (
     UserNotFound,
 )
 from app.models.user_model import User
-from app.schemas.profile import ProfileDetailRead, ProfileUpdate
+from app.schemas.profile import (
+    PositionWithExperienceRead,
+    ProfileDetailRead,
+    ProfileUpdate,
+)
 from app.schemas.user import UserCreate, UserDelete, UserRead, UserReadWithProfile
 from app.services.bookmark_service import BookmarkService, get_bookmark_service
 from app.services.user_service import user_service
@@ -77,7 +81,11 @@ async def update_my_profile(
         db=db, user=current_user, profile_update=profile_update
     )
 
-    # Optional 필드 안전하게 반환
+    positions_data = [
+        PositionWithExperienceRead.from_link(link)
+        for link in getattr(updated_profile, "position_links", []) or []
+    ]
+
     return ProfileDetailRead(
         email=current_user.email or None,
         nickname=current_user.nickname or None,
@@ -89,7 +97,7 @@ async def update_my_profile(
         ),
         is_bookmarked=False,
         regions=updated_profile.regions or [],
-        positions=updated_profile.positions or [],
+        positions=positions_data or [],
         genres=updated_profile.genres or [],
     )
 
