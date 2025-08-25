@@ -482,7 +482,6 @@ async def update_recruiting_detail(
             )
         )
 
-
     # new_regions, new_genres: DB에서 조회한 Region, Genre 객체 리스트
     # post.regions.extend(new_regions)
     # post.genres.extend(new_genres)
