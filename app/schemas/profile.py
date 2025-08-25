@@ -31,8 +31,8 @@ class ProfileUpdate(SQLModel):
 
 
 class PositionWithExperienceRead(SQLModel):
-    position: PositionRead
-    experience_level: ExperienceLevelRead
+    position: Optional[PositionRead] = None
+    experience_level: Optional[ExperienceLevelRead] = None
 
     @classmethod
     def from_link(cls, link: ProfilePositionLink):
@@ -58,9 +58,9 @@ class ProfileListResponse(SQLModel):
 class ProfileDetailRead(SQLModel):
     email: str
     nickname: str
-    image_url: str | None
+    image_url: Optional[str] = None
     is_public: bool
     is_bookmarked: bool
     regions: List[RegionRead]
-    positions: List[PositionWithExperienceRead]
+    positions: Optional[List[PositionWithExperienceRead]] = []
     genres: List[GenreRead]
