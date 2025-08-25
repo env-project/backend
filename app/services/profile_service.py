@@ -8,7 +8,6 @@ from sqlmodel import col, select
 
 from app.models.bookmark_model import UserBookmark
 from app.models.common_model import Genre, Position, ProfilePositionLink, Region
-from app.models.recruiting_model import Comment, RecruitingPost
 from app.models.user_model import Profile, User
 
 
@@ -52,36 +51,11 @@ class ProfileService:
 
         return profile, is_bookmarked
 
-    async def get_recent_posts(
-        self, db: AsyncSession, user_id: uuid.UUID, limit: int = 5
-    ) -> Sequence[RecruitingPost]:
-        """특정 사용자가 작성한 최근 구인글을 가져옵니다."""
-        statement = (
-            select(RecruitingPost)
-            .where(RecruitingPost.user_id == user_id)
-            .order_by(col(RecruitingPost.created_at).desc())
-            .limit(limit)
-        )
-        result = await db.execute(statement)
-        return result.scalars().all()
-
-    async def get_recent_comments(
-        self, db: AsyncSession, user_id: uuid.UUID, limit: int = 5
-    ) -> Sequence[Comment]:
-        """특정 사용자가 작성한 최근 댓글을 가져옵니다."""
-        statement = (
-            select(Comment)
-            .where(Comment.user_id == user_id)
-            .order_by(col(Comment.created_at).desc())
-            .limit(limit)
-        )
-        result = await db.execute(statement)
-        return result.scalars().all()
-
     async def get_profile_list(
         self,
         db: AsyncSession,
         current_user_id: uuid.UUID,
+        bookmarked: bool,
         limit: int,
         cursor: Optional[str],
         nickname: Optional[str],
@@ -110,6 +84,11 @@ class ProfileService:
                 selectinload(Profile.genres),
             )
         )
+
+        if bookmarked:
+            statement = statement.join(
+                UserBookmark, Profile.user_id == UserBookmark.bookmarked_user_id
+            ).where(UserBookmark.user_id == current_user_id)
 
         # 2. 필터링 조건 추가
         if nickname:

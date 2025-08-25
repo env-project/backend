@@ -35,6 +35,7 @@ async def get_profiles(
     genre_ids: Optional[List[uuid.UUID]] = Query(None),
     experience_level_ids: Optional[List[uuid.UUID]] = Query(None),
     sort_by: str = Query("latest", enum=["latest", "bookmarks", "views"]),
+    bookmarked: bool = Query(False, description="내가 북마크한 프로필만 조회"),
     order_by: str = Query("desc", enum=["asc", "desc"]),
 ):
     """타 사용자 프로필 목록을 조회"""
@@ -50,6 +51,7 @@ async def get_profiles(
         genre_ids=genre_ids,
         experience_level_ids=experience_level_ids,
         sort_by=sort_by,
+        bookmarked=bookmarked,
         order_by=order_by,
     )
 
@@ -119,10 +121,6 @@ async def get_profile(
             status_code=status.HTTP_403_FORBIDDEN, detail="This profile is private"
         )
 
-    # 최근 활동 내역을 조회
-    recent_posts = await profile_service.get_recent_posts(db=db, user_id=user_id)
-    recent_comments = await profile_service.get_recent_comments(db=db, user_id=user_id)
-
     # 최종 응답 데이터를 스키마에 맞게 조합
     return ProfileDetailRead(
         email=profile.user.email,
@@ -136,6 +134,4 @@ async def get_profile(
             for link in profile.position_links
         ],
         genres=profile.genres,
-        recent_posts=recent_posts,
-        recent_comments=recent_comments,
     )

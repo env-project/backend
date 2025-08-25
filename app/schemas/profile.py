@@ -1,6 +1,5 @@
 # app/schemas/profile.py
 import uuid
-from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
 from sqlmodel import SQLModel
@@ -29,17 +28,6 @@ class ProfileUpdate(SQLModel):
 
 
 # --- Response Schemas ---
-class PostSummary(SQLModel):
-    id: uuid.UUID
-    title: str
-    created_at: datetime
-
-
-class CommentSummary(SQLModel):
-    id: uuid.UUID
-    content: str
-    created_at: datetime
-    post: PostSummary
 
 
 class PositionWithExperienceRead(SQLModel):
@@ -76,5 +64,3 @@ class ProfileDetailRead(SQLModel):
     regions: List[RegionRead]
     positions: List[PositionWithExperienceRead]
     genres: List[GenreRead]
-    recent_posts: List[PostSummary]
-    recent_comments: List[CommentSummary]

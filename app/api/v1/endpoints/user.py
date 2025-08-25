@@ -17,7 +17,6 @@ from app.models.user_model import User
 from app.schemas.profile import ProfileDetailRead, ProfileUpdate
 from app.schemas.user import UserCreate, UserDelete, UserRead, UserReadWithProfile
 from app.services.bookmark_service import BookmarkService, get_bookmark_service
-from app.services.profile_service import profile_service
 from app.services.user_service import user_service
 
 logger = logging.getLogger(__name__)
@@ -44,12 +43,6 @@ async def read_users_me(
     """
     profile_data = None
     if current_user.profile:
-        recent_posts = await profile_service.get_recent_posts(
-            db=db, user_id=current_user.id
-        )
-        recent_comments = await profile_service.get_recent_comments(
-            db=db, user_id=current_user.id
-        )
 
         profile_data = ProfileDetailRead(
             email=current_user.email,
@@ -60,8 +53,6 @@ async def read_users_me(
             regions=current_user.profile.regions,
             positions=current_user.profile.positions,
             genres=current_user.profile.genres,
-            recent_posts=recent_posts,
-            recent_comments=recent_comments,
         )
 
     return UserReadWithProfile(
