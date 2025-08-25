@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,6 +46,23 @@ logger = logging.getLogger(__name__)
 recruiting_router = APIRouter()  # redirect_slashes=False
 
 
+def make_uuid_list_parser(param_name: str) -> Callable:
+    def parser(
+        value: Optional[str] = Query(None, alias=param_name)
+    ) -> Optional[List[uuid.UUID]]:
+        if value is None:
+            return None
+        try:
+            return [uuid.UUID(v) for v in value.split(",") if v]
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="region/position/genre_ids로 유효한 UUID 값이 들어와야 합니다.",
+            )
+
+    return parser
+
+
 # FR-011: 구인글 목록 조회
 @recruiting_router.get(
     "",
@@ -85,9 +102,15 @@ async def api_get_recruiting(
     search_query: Optional[str] = Query(None),
     orientation: Optional[uuid.UUID] = Query(None),
     experienced_level: Optional[uuid.UUID] = Query(None),
-    region_ids: Optional[List[uuid.UUID]] = Query(None),
-    position_ids: Optional[List[uuid.UUID]] = Query(None),
-    genre_ids: Optional[List[uuid.UUID]] = Query(None),
+    # region_ids: Optional[List[uuid.UUID]] = Depends(uuid_list_parser),
+    # region_ids: Optional[List[uuid.UUID]] = Depends(lambda region_ids: uuid_list_parser(region_ids)),
+    region_ids: Optional[List[uuid.UUID]] = Depends(
+        make_uuid_list_parser("region_ids")
+    ),
+    position_ids: Optional[List[uuid.UUID]] = Depends(
+        make_uuid_list_parser("position_ids")
+    ),
+    genre_ids: Optional[List[uuid.UUID]] = Depends(make_uuid_list_parser("genre_ids")),
     sort_by: SortBy = Query(SortBy.LATEST),
     db: AsyncSession = Depends(get_async_session),
     current_user: str = Depends(get_current_user_or_none),

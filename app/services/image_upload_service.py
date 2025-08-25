@@ -8,7 +8,6 @@ from botocore.exceptions import BotoCoreError, ClientError, NoCredentialsError
 from dotenv import load_dotenv
 from fastapi import HTTPException, UploadFile
 
-
 logger = logging.getLogger(__name__)
 
 
