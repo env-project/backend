@@ -28,19 +28,34 @@ async def get_profiles(
     limit: int = Query(20, gt=0, le=100),
     cursor: Optional[str] = Query(None),
     nickname: Optional[str] = Query(None),
-    region_ids: Optional[List[uuid.UUID]] = Query(None),
-    position_ids: Optional[List[uuid.UUID]] = Query(None),
-    genre_ids: Optional[List[uuid.UUID]] = Query(None),
-    experience_level_ids: Optional[List[uuid.UUID]] = Query(None),
+    region_ids_str: Optional[str] = Query(None, alias="region_ids"),
+    position_ids_str: Optional[str] = Query(None, alias="position_ids"),
+    genre_ids_str: Optional[str] = Query(None, alias="genre_ids"),
+    experience_level_ids_str: Optional[str] = Query(None, alias="experience_level_ids"),
     sort_by: str = Query("latest", enum=["latest", "bookmarks", "views"]),
     bookmarked: bool = Query(False, description="내가 북마크한 프로필만 조회"),
     order_by: str = Query("desc", enum=["asc", "desc"]),
 ):
     """타 사용자 프로필 목록을 조회"""
-    current_user_id = current_user.id if current_user else None
+
+    # 콤마로 구분된 문자열을 UUID 리스트로 파싱
+    def parse_uuid_list(id_str: Optional[str]) -> Optional[List[uuid.UUID]]:
+        if not id_str:
+            return None
+        try:
+            return [uuid.UUID(i.strip()) for i in id_str.split(",")]
+        except ValueError:
+            raise HTTPException(
+                status_code=422, detail="Invalid UUID format in query parameters."
+            )
+
+    region_ids = parse_uuid_list(region_ids_str)
+    position_ids = parse_uuid_list(position_ids_str)
+    genre_ids = parse_uuid_list(genre_ids_str)
+    experience_level_ids = parse_uuid_list(experience_level_ids_str)
     profiles = await profile_service.get_profile_list(
         db=db,
-        current_user_id=current_user_id,
+        current_user_id=current_user.id if current_user else None,
         limit=limit,
         cursor=cursor,
         nickname=nickname,
