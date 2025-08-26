@@ -100,8 +100,12 @@ class UserService:
             .options(
                 selectinload(Profile.regions),
                 selectinload(Profile.genres),
-                selectinload(Profile.position_links).selectinload("position"),
-                selectinload(Profile.position_links).selectinload("experience_level"),
+                selectinload(Profile.position_links).selectinload(
+                    ProfilePositionLink.position
+                ),
+                selectinload(Profile.position_links).selectinload(
+                    ProfilePositionLink.experience_level
+                ),
             )
             .where(Profile.id == profile.id)
         )
