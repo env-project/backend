@@ -40,6 +40,7 @@ async def get_current_user(
     statement = (
         select(User)
         .options(
+            selectinload(User.profile),
             selectinload(User.profile).selectinload(Profile.regions),
             selectinload(User.profile)
             .selectinload(Profile.position_links)

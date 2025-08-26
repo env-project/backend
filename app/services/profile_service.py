@@ -94,17 +94,19 @@ class ProfileService:
         if nickname:
             statement = statement.where(User.nickname.ilike(f"%{nickname}%"))
         if region_ids:
-            statement = statement.where(Profile.regions.any(Region.id.in_(region_ids)))
+            statement = statement.join(Profile.regions).where(Region.id.in_(region_ids))
         if position_ids:
             statement = statement.where(
                 Profile.positions.any(Position.id.in_(position_ids))
             )
         if genre_ids:
-            statement = statement.where(Profile.genres.any(Genre.id.in_(genre_ids)))
+            statement = statement.join(Profile.genres).where(Genre.id.in_(genre_ids))
         if experience_level_ids:
             statement = statement.join(Profile.position_links).where(
                 ProfilePositionLink.experience_level_id.in_(experience_level_ids)
             )
+
+        statement = statement.distinct()
 
         # 3. 정렬 조건 설정
         sort_column = getattr(Profile, f"{sort_by}_count", Profile.created_at)

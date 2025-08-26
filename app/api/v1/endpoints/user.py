@@ -55,7 +55,7 @@ async def read_users_me(
             is_public=current_user.profile.is_public,
             is_bookmarked=False,
             regions=current_user.profile.regions,
-            positions=current_user.profile.positions,
+            positions=current_user.profile.position_links,
             genres=current_user.profile.genres,
         )
 
